@@ -4,32 +4,43 @@ import path from 'path'
 const _fs = fs.promises
 
 let handler = async (m, { text, usedPrefix, command, __dirname }) => {
-  if (!text) {
-    throw `
-✳️ user  : ${usedPrefix + command} <name file> <new code>
+  try {
+    if (!text) {
+      throw `
+✳️ Usage: ${usedPrefix + command} <name file> <new code>
 
 📌 Example:
         ${usedPrefix}paste main.js
         // New code content here...
-    `.trim()
-  }
+      `.trim()
+    }
 
-  const args = text.split('\n')
-  const filename = args[0]
-  const newCode = args.slice(1).join('\n')
+    // Split and sanitize input
+    const args = text.trim().split('\n')
+    const filename = args[0]?.trim()
+    const newCode = args.slice(1).join('\n').trim()
 
-  if (!filename || !newCode) {
-    throw 'Please provide both a file name and new code content.'
-  }
+    // Validate input
+    if (!filename || !newCode) {
+      throw 'Please provide both a file name and new code content.'
+    }
 
-  const pathFile = path.join(__dirname, filename)
-  
-  try {
-    // Write the new code into the file
+    if (filename.includes('..') || filename.startsWith('/')) {
+      throw 'Invalid file name. Avoid using ".." or absolute paths.'
+    }
+
+    const pathFile = path.join(__dirname, filename)
+
+    // Write the file
+    if (!fs.existsSync(pathFile)) {
+      await m.reply(`⚠️ The file *${filename}* does not exist. It will be created.`)
+    }
+
     await _fs.writeFile(pathFile, newCode, 'utf8')
-    await m.reply(`✅ The file *${filename}* has been updated with the new code.`)
+    await m.reply(`✅ The file *${filename}* has been updated successfully.`)
   } catch (err) {
-    await m.reply(`❎ Failed to update the file *${filename}*.\nError: ${err.message}`)
+    console.error(err)
+    await m.reply(`❎ Error: ${err.message}`)
   }
 }
 
