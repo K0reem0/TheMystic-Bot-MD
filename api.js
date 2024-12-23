@@ -1,36 +1,37 @@
-import {watchFile, unwatchFile} from 'fs';
+import { watchFile, unwatchFile } from 'fs';
 import chalk from 'chalk';
-import {fileURLToPath} from 'url';
+import { fileURLToPath } from 'url';
 import fs from 'fs';
-import cheerio from 'cheerio';
+import { load as cheerio } from 'cheerio';
 import fetch from 'node-fetch';
 import axios from 'axios';
 import moment from 'moment-timezone';
 
-/* Para agregar más APIs asegurate de poner global.apiname = ['APIKey'] */ /* By Skid 🤑 */
+// API Keys and Configuration
+global.openai_key = 'sk-0'; // OpenAI API Key
+global.openai_org_id = 'org-3'; // OpenAI Organization ID
 
-global.openai_key = 'sk-0';
-/* Obtén tu API Key en este enlace: https://platform.openai.com/account/api-keys */
-
-global.openai_org_id = 'org-3';
-/* Obtén tu ID de organización en este enlace: https://platform.openai.com/account/org-settings */
-
-global.MyApiRestBaseUrl = 'https://api.cafirexos.com'; // Bloqueo de IP -> usar esta para no ser bloqueado: 'https://api-brunosobrino.onrender.com';
+// Custom API Base URLs
+global.MyApiRestBaseUrl = 'https://api.cafirexos.com'; // Avoid IP blocking
 global.MyApiRestApikey = 'BrunoSobrino';
-
 global.MyApiRestBaseUrl2 = 'https://api-brunosobrino-dcaf9040.koyeb.app';
+global.MyApiRestBaseUrl3 = 'https://api-brunosobrino.onrender.com';
 
-global.MyApiRestBaseUrl3 = 'https://api-brunosobrino.onrender.com'; 
+// API Keys for various services
+global.keys = {
+  zens: ['LuOlangNgentot', 'c2459db922', '37CC845916', '6fb0eff124', 'hdiiofficial', 'fiktod', 'BF39D349845E', '675e34de8a', '0b917b905e6f'],
+  xteam: ['29d4b59a4aa687ca', '5LTV57azwaid7dXfz5fzJu', 'cb15ed422c71a2fb', '5bd33b276d41d6b4', 'HIRO', 'kurrxd09', 'ebb6251cc00f9c63'],
+  neoxr: ['5VC9rvNx', 'cfALv5'],
+  lolhuman: ['GataDiosV3'],
+  itsrose: ['4b146102c4d500809da9d1ff'],
+};
 
-global.keysZens = ['LuOlangNgentot', 'c2459db922', '37CC845916', '6fb0eff124', 'hdiiofficial', 'fiktod', 'BF39D349845E', '675e34de8a', '0b917b905e6f'];
-global.keysxxx = keysZens[Math.floor(keysZens.length * Math.random())];
-global.keysxteammm = ['29d4b59a4aa687ca', '5LTV57azwaid7dXfz5fzJu', 'cb15ed422c71a2fb', '5bd33b276d41d6b4', 'HIRO', 'kurrxd09', 'ebb6251cc00f9c63'];
-global.keysxteam = keysxteammm[Math.floor(keysxteammm.length * Math.random())];
-global.keysneoxrrr = ['5VC9rvNx', 'cfALv5'];
-global.keysneoxr = keysneoxrrr[Math.floor(keysneoxrrr.length * Math.random())];
-global.lolkeysapi = ['GataDiosV3']; // ['BrunoSobrino_2']
-global.itsrose = ['4b146102c4d500809da9d1ff'];
+// Random key selection
+global.keysxxx = global.keys.zens[Math.floor(Math.random() * global.keys.zens.length)];
+global.keysxteam = global.keys.xteam[Math.floor(Math.random() * global.keys.xteam.length)];
+global.keysneoxr = global.keys.neoxr[Math.floor(Math.random() * global.keys.neoxr.length)];
 
+// API URLs
 global.APIs = {
   CFROSAPI: 'https://api.cafirexos.com',
   xteam: 'https://api.xteam.xyz',
@@ -50,23 +51,25 @@ global.APIs = {
   erdwpe: 'https://api.erdwpe.com',
   xyroinee: 'https://api.xyroinee.xyz',
   nekobot: 'https://nekobot.xyz',
-  BK9: 'https://apii.bk9.site'
-},
+  BK9: 'https://apii.bk9.site',
+};
+
+// API Keys for these URLs
 global.APIKeys = {
-  'https://api.xteam.xyz': `${keysxteam}`,
+  'https://api.xteam.xyz': global.keysxteam,
   'https://api.lolhuman.xyz': 'GataDios',
-  'https://api.neoxr.my.id': `${keysneoxr}`,
-  'https://api.zahwazein.xyz': `${keysxxx}`,
+  'https://api.neoxr.my.id': global.keysneoxr,
+  'https://api.zahwazein.xyz': global.keysxxx,
   'https://api-fgmods.ddns.net': 'fg-dylux',
   'https://api.botcahx.biz.id': 'Admin',
   'https://api.ibeng.tech/docs': 'tamvan',
   'https://api.itsrose.site': 'Rs-Zeltoria',
   'https://api-xcoders.site': 'Frieren',
   'https://api.xyroinee.xyz': 'uwgflzFEh6',
-  'https://apikasu.onrender.com': 'ApiKey'
+  'https://apikasu.onrender.com': 'ApiKey',
 };
 
-/** ************************/
+// Modules for global use
 global.cheerio = cheerio;
 global.fs = fs;
 global.fetch = fetch;
