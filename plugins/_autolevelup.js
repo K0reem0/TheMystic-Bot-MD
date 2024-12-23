@@ -4,7 +4,7 @@ import Canvacord from 'canvacord'
 export async function before(m, { conn }) {
     let user = global.db.data.users[m.sender]
     let name = conn.getName(m.sender)
-    let pp = await conn.profilePictureUrl(m.sender, 'image').catch(_ => './Menu2.jpg')
+    let pp = await conn.profilePictureUrl(m.sender, 'image').catch(_ => './src/assets/images/menu/main/galaxyMenu.png')
 
     // Store the current level
     let before = user.level * 1
