@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { canLevelUp, xpRange } from '../lib/levelling.js';
+import { canLevelUp, xpRange } from '../src/libraries/levelling.js';
 import Canvacord from 'canvacord';
 
 let handler = async (m, { conn }) => {
