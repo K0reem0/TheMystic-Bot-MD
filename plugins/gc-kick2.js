@@ -1,21 +1,25 @@
+let handler = async (m, { conn, participants, usedPrefix, command }) => {
+    let botOwnerJid = '966560801636@s.whatsapp.net'; // Bot owner's JID (replace with the actual one)
+    let kickte = `*مــنشـن الـشـخص !*`;
 
+    if (!m.mentionedJid[0] && !m.quoted) 
+        return m.reply(kickte, m.chat, { mentions: conn.parseMention(kickte) });
 
-const handler = async (m, {conn, participants, usedPrefix, command}) => {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.gc_kick2
+    let user = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted.sender;
 
-  if (!global.db.data.settings[conn.user.jid].restrict) throw`${tradutor.texto1[0]} (𝚎𝚗𝚊𝚋𝚕𝚎 𝚛𝚎𝚜𝚝𝚛𝚒𝚌𝚝 / 𝚍𝚒𝚜𝚊𝚋𝚕𝚎 𝚛𝚎𝚜𝚝𝚛𝚒𝚌𝚝) ${tradutor.texto1[1]}`;
-  const kicktext = `${tradutor.texto2} \n*${usedPrefix + command} @${global.suittag}*`;
-  if (!m.mentionedJid[0] && !m.quoted) return m.reply(kicktext, m.chat, {mentions: conn.parseMention(kicktext)});
-  if (m.mentionedJid.includes(conn.user.jid)) return;
-  const user = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted.sender;
-  const owr = m.chat.split`-`[0];
-  await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
+    if (user === botOwnerJid) {
+        return m.reply(`*تبيني اطرد ابوي!*`);
+    }
+
+    await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
+    m.reply(`*تـــم الــطرد !*`);
 };
-handler.command = /^(kick2|echar2|hechar2|sacar2)$/i;
+
+handler.help = ['kick @user'];
+handler.tags = ['group'];
+handler.command = ['اتوكل', 'كلبطه', 'اخرس', 'طرد', 'دزمها', 'احبك', 'اكرهك', 'مغربي', 'منغولي', 'يمني'];
 handler.admin = true;
 handler.group = true;
 handler.botAdmin = true;
+
 export default handler;
