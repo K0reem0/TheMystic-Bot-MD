@@ -61,14 +61,14 @@ global.DATABASE = global.db;
 
 global.loadDatabase = async function loadDatabase() {
   if (global.db.READ)
-    return new Promise(resolve =>
-      setInterval(async function () {
+    return new Promise(resolve => {
+      const interval = setInterval(async function () {
         if (!global.db.READ) {
-          clearInterval(this);
+          clearInterval(interval);
           resolve(global.db.data == null ? global.loadDatabase() : global.db.data);
         }
       }, 1 * 1000);
-    )
+    });
   if (global.db.data !== null) return;
   global.db.READ = true;
   await global.db.read().catch(console.error);
