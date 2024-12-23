@@ -1,4 +1,4 @@
-import { canLevelUp, xpRange } from '../lib/levelling.js'
+import { canLevelUp, xpRange } from '../src/libraries/levelling.js'
 import Canvacord from 'canvacord'
 
 export async function before(m, { conn }) {
