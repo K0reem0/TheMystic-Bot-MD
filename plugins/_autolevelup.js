@@ -15,7 +15,7 @@ export async function before(m, { conn }) {
     }
 
     // Dynamically update the user's role based on the new level
-    user.role = global.rpg.role(user.level).name
+    user.role = role
 
     // If the user has leveled up, send a notification with the level-up card
     if (before !== user.level) {
