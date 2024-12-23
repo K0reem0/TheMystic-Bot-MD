@@ -16,6 +16,8 @@ import {format} from 'util';
 import pino from 'pino';
 import Pino from 'pino';
 import {Boom} from '@hapi/boom';
+import CloudDBAdapter from './src/libraries/cloudDBAdapter.js'
+import { MongoDB } from './src/libraries/mongoDB.js'
 import {makeWASocket, protoType, serialize} from './src/libraries/simple.js';
 import {Low, JSONFile} from 'lowdb';
 import store from './src/libraries/store.js';
@@ -45,18 +47,28 @@ global.videoListXXX = [];
 const __dirname = global.__dirname(import.meta.url);
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse());
 global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-.@').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']');
-global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`));
+global.opts['db'] = process.env.DATABASE_URL;
 
+global.db = new Low(
+  /https?:\/\//.test(opts['db'] || '')
+    ? new CloudDBAdapter(opts['db'])
+    : /mongodb(\+srv)?:\/\//i.test(opts['db'])
+      ? new MongoDB(opts['db'])
+      : new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`)
+);
+
+global.DATABASE = global.db;
 
 global.loadDatabase = async function loadDatabase() {
-  if (global.db.READ) {
-    return new Promise((resolve) => setInterval(async function() {
-      if (!global.db.READ) {
-        clearInterval(this);
-        resolve(global.db.data == null ? global.loadDatabase() : global.db.data);
-      }
-    }, 1 * 1000));
-  }
+  if (global.db.READ)
+    return new Promise(resolve =>
+      setInterval(async function () {
+        if (!global.db.READ) {
+          clearInterval(this);
+          resolve(global.db.data == null ? global.loadDatabase() : global.db.data);
+        }
+      }, 1 * 1000);
+    )
   if (global.db.data !== null) return;
   global.db.READ = true;
   await global.db.read().catch(console.error);
