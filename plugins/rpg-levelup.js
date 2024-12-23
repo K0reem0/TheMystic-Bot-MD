@@ -1,50 +1,56 @@
-import { canLevelUp, xpRange } from '../src/libraries/levelling.js';
-import { levelup } from '../src/libraries/canvas.js';
+import { canLevelUp, xpRange } from '../src/libraries//levelling.js'
 
+let handler = async (m, { conn }) => {
+    let name = conn.getName(m.sender)
+    let who = m.quoted ? m.quoted.sender : m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
+    let pp = await conn.profilePictureUrl(who, 'image').catch(_ => './src/assets/images/menu/main/galaxyMenu.png')
+    let user = global.db.data.users[m.sender]
 
-const handler = async (m, { conn }) => {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.rpg_levelup
+    // Dynamically fetch the role based on the user's level
+    let role = global.rpg.role(user.level).name;
 
-  const name = conn.getName(m.sender);
-  const usertag = '@' + m.sender.split('@s.whatsapp.net')[0];
-  const user = global.db.data.users[m.sender];
-  if (!canLevelUp(user.level, user.exp, global.multiplier)) {
-    const { min, xp, max } = xpRange(user.level, global.multiplier);
-    const message = `
-${tradutor.texto1[0]}
-${tradutor.texto1[1]} ${usertag}!*
+    if (!canLevelUp(user.level, user.exp, global.multiplier)) {
+        let { min, xp, max } = xpRange(user.level, global.multiplier)
+        let lvl = `*❃ ──────⊰ ❀ ⊱────── ❃*
+◍ *الأسم :*  *${name}*
+◍ *المستوى :*  *${user.level}*
+◍ *الخبرة :* *${user.exp - min}/${xp}*
+◍ *التصنيف :* *${role}*
+*❃ ──────⊰ ❀ ⊱────── ❃*
 
-${tradutor.texto1[2]} ${user.level}
-${tradutor.texto1[3]} ${user.role}
-${tradutor.texto1[4]} ${user.exp - min}/${xp}
-
-${tradutor.texto1[5]} ${max - user.exp} ${tradutor.texto1[6]}`.trim();
-    return conn.sendMessage(m.chat, {text: message, mentions: [m.sender]}, {quoted: m});
-  }
-  const before = user.level * 1;
-  while (canLevelUp(user.level, user.exp, global.multiplier)) user.level++;
-  if (before !== user.level) {
-    const levelUpMessage = `${tradutor.texto2[0]} ${name}! ${tradutor.texto2[1]} ${user.level}`;
-    const levelUpDetails = `
-${tradutor.texto3[0]}
-
-${tradutor.texto3[1]}* ${before}
-${tradutor.texto3[2]} ${user.level}
-${tradutor.texto3[3]} ${user.role}
-
-${tradutor.texto3[4]}`.trim();
-    try {
-      const levelUpImage = await levelup(levelUpMessage, user.level);
-      conn.sendFile(m.chat, levelUpImage, 'levelup.jpg', levelUpDetails, m);
-    } catch (e) {
-      conn.sendMessage(m.chat, {text: levelUpDetails, mentions: [m.sender]}, {quoted: m});
+*مرحبا* *${name}* *لايمكنك الترقي حاليا انت تحتاج الى* *${max - user.exp}* *للصعود للمستوى التالي*
+`
+        conn.sendFile(m.chat, pp, 'levelup.jpg', lvl, m)
     }
-  }
-};
-handler.help = ['levelup'];
-handler.tags = ['xp'];
-handler.command = ['nivel', 'lvl', 'levelup', 'level'];
-export default handler;
+
+    let before = user.level * 1
+    while (canLevelUp(user.level, user.exp, global.multiplier)) user.level++
+    if (before !== user.level) {
+        // Dynamically update the role after leveling up
+        role = global.rpg.role(user.level).name;
+
+        let teks = `تست ${conn.getName(m.sender)} المستوى: ${user.level}`
+        let str = `
+*❃ ──────⊰ ❀ ⊱────── ❃*
+◍ *المستوى السابق :* *${user.level - 1}*
+◍ *المستوى الحالي :* *${user.level}*
+◍ *التصنيف :* *${role}*
+*❃ ──────⊰ ❀ ⊱────── ❃*
+`
+        .trim()
+        try {
+            const img = await levelup(teks, user.level)
+            conn.sendFile(m.chat, pp, 'levelup.jpg', str, m)
+        } catch (e) {
+            m.reply(str)
+        }
+    }
+    await delay(5 * 5000)  
+}
+
+handler.help = ['levelup']
+handler.tags = ['xp']
+handler.command = ['nivel', 'lvl', 'لفل'] 
+
+export default handler
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
