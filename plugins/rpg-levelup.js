@@ -1,56 +1,52 @@
-import { canLevelUp, xpRange } from '../src/libraries//levelling.js'
+import { canLevelUp, xpRange } from '../src/libraries/levelling.js'
 
 let handler = async (m, { conn }) => {
-    let name = conn.getName(m.sender)
-    let who = m.quoted ? m.quoted.sender : m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
-    let pp = await conn.profilePictureUrl(who, 'image').catch(_ => './src/assets/images/menu/main/galaxyMenu.png')
-    let user = global.db.data.users[m.sender]
-
-    // Dynamically fetch the role based on the user's level
-    let role = global.rpg.role(user.level).name;
+    let name = conn.getName(m.sender);
+    let who = m.quoted ? m.quoted.sender : m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender;
+    let pp = await conn.profilePictureUrl(who, 'image').catch(_ => './src/assets/images/menu/main/galaxyMenu.png');
+    let user = global.db.data.users[m.sender];
 
     if (!canLevelUp(user.level, user.exp, global.multiplier)) {
-        let { min, xp, max } = xpRange(user.level, global.multiplier)
+        let { min, xp, max } = xpRange(user.level, global.multiplier);
         let lvl = `*❃ ──────⊰ ❀ ⊱────── ❃*
 ◍ *الأسم :*  *${name}*
 ◍ *المستوى :*  *${user.level}*
 ◍ *الخبرة :* *${user.exp - min}/${xp}*
-◍ *التصنيف :* *${role}*
+◍ *التصنيف :* *${user.role}*
 *❃ ──────⊰ ❀ ⊱────── ❃*
 
-*مرحبا* *${name}* *لايمكنك الترقي حاليا انت تحتاج الى* *${max - user.exp}* *للصعود للمستوى التالي*
-`
-        conn.sendFile(m.chat, pp, 'levelup.jpg', lvl, m)
+*مرحبا* *${name}* *لا يمكنك الترقي حاليا. أنت تحتاج إلى* *${max - user.exp}* *للصعود للمستوى التالي.*
+`;
+        conn.sendFile(m.chat, pp, 'levelup.jpg', lvl, m);
+        return;
     }
 
-    let before = user.level * 1
-    while (canLevelUp(user.level, user.exp, global.multiplier)) user.level++
-    if (before !== user.level) {
-        // Dynamically update the role after leveling up
-        role = global.rpg.role(user.level).name;
+    let before = user.level * 1;
+    while (canLevelUp(user.level, user.exp, global.multiplier)) user.level++;
 
-        let teks = `تست ${conn.getName(m.sender)} المستوى: ${user.level}`
+    if (before !== user.level) {
+        // The user's role is updated automatically in your `handler.before` logic.
+        let teks = `تهانينا ${name} على الوصول إلى المستوى ${user.level}!`;
         let str = `
 *❃ ──────⊰ ❀ ⊱────── ❃*
-◍ *المستوى السابق :* *${user.level - 1}*
+◍ *المستوى السابق :* *${before}*
 ◍ *المستوى الحالي :* *${user.level}*
-◍ *التصنيف :* *${role}*
+◍ *التصنيف الحالي :* *${user.role}*
 *❃ ──────⊰ ❀ ⊱────── ❃*
-`
-        .trim()
+        `.trim();
+
         try {
-            const img = await levelup(teks, user.level)
-            conn.sendFile(m.chat, pp, 'levelup.jpg', str, m)
+            const img = await levelup(teks, user.level); // Assuming `levelup` generates an image.
+            conn.sendFile(m.chat, pp, 'levelup.jpg', str, m);
         } catch (e) {
-            m.reply(str)
+            m.reply(str);
         }
     }
-    await delay(5 * 5000)  
-}
+};
 
-handler.help = ['levelup']
-handler.tags = ['xp']
-handler.command = ['nivel', 'lvl', 'لفل'] 
+handler.help = ['levelup'];
+handler.tags = ['xp'];
+handler.command = ['nivel', 'lvl', 'لفل'];
 
-export default handler
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+export default handler;
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
