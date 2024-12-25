@@ -25,45 +25,25 @@ const delay = (ms) => isNumber(ms) && new Promise((resolve) => setTimeout(functi
  * @param {import("baileys").BaileysEventMap<unknown>['messages.upsert']} groupsUpdate
  */
 export async function handler(chatUpdate) {
-  this.msgqueque = this.msgqueque || [];
-  this.uptime = this.uptime || Date.now();
-  if (!chatUpdate) {
-    return;
-  }
-  this.pushMessage(chatUpdate.messages).catch(console.error);
-  let m = chatUpdate.messages[chatUpdate.messages.length - 1];
-  if (!m) {
-    return;
-  }
-  if (global.db.data == null) await global.loadDatabase();
-  /* Creditos a Otosaka (https://wa.me/51993966345) */
-
-  if (global.chatgpt.data === null) await global.loadChatgptDB();
-
-  /* ------------------------------------------------*/
+  export async function handler(chatUpdate) {
+  this.msgqueque = this.msgqueque || []
+  if (!chatUpdate) return
+  this.pushMessage(chatUpdate.messages).catch(console.error)
+  let m = chatUpdate.messages[chatUpdate.messages.length - 1]
+  if (!m) return
+  if (global.db.data == null) await global.loadDatabase()
   try {
-    m = smsg(this, m) || m;
-    if (!m) {
-      return;
-    }
-    global.mconn = m
-    mconn = m
-    m.exp = 0;
-    m.money = false;
-    m.limit = false;
-    m.bank = false;
-    m.chicken = false;
+    m = smsg(this, m) || m
+    if (!m) return
+    m.exp = 0
+    m.credit = false
+    m.bank = false
+    m.chicken = false
     try {
       // TODO: use loop to insert data instead of this
-      const user = global.db.data.users[m.sender];
-      /* Creditos a Otosaka (https://wa.me/51993966345) */
+      let user = global.db.data.users[m.sender];
 
-      const chatgptUser = global.chatgpt.data.users[m.sender];
-      if (typeof chatgptUser !== 'object') {
-        global.chatgpt.data.users[m.sender] = [];
-      }
-
-      /* ------------------------------------------------*/
+      // Initialize user data if it doesn't exist
       if (typeof user !== 'object') {
         global.db.data.users[m.sender] = {};
       }
