@@ -9,84 +9,68 @@ import chalk from 'chalk';
 import mddd5 from 'md5';
 import ws from 'ws';
 import Pino from 'pino'
+let mconn;
 
 /**
- * @type {import("@whiskeysockets/baileys")}
+ * @type {import("baileys")}
  */
-const isNumber = x => typeof x === 'number' && !isNaN(x)
-const delay = ms =>
-  isNumber(ms) &&
-  new Promise(resolve =>
-    setTimeout(function () {
-      clearTimeout(this)
-      resolve()
-    }, ms)
-  )
+const { proto } = (await import("baileys")).default;
+const isNumber = (x) => typeof x === 'number' && !isNaN(x);
+const delay = (ms) => isNumber(ms) && new Promise((resolve) => setTimeout(function () {
+  clearTimeout(this);
+  resolve();
+}, ms));
 
 /**
  * Handle messages upsert
- * @param {import("@whiskeysockets/baileys").BaileysEventMap<unknown>["messages.upsert"]} groupsUpdate
+ * @param {import("baileys").BaileysEventMap<unknown>['messages.upsert']} groupsUpdate
  */
-const { getAggregateVotesInPollMessage, makeInMemoryStore } = await (
-  await import('@whiskeysockets/baileys')
-).default
-const store = makeInMemoryStore({
-  logger: Pino().child({
-    level: 'fatal',
-    stream: 'store',
-  }),
-})
 export async function handler(chatUpdate) {
-  this.msgqueque = this.msgqueque || []
-  if (!chatUpdate) return
-  this.pushMessage(chatUpdate.messages).catch(console.error)
-  let m = chatUpdate.messages[chatUpdate.messages.length - 1]
-  if (!m) return
-  if (global.db.data == null) await global.loadDatabase()
+  this.msgqueque = this.msgqueque || [];
+  this.uptime = this.uptime || Date.now();
+  if (!chatUpdate) {
+    return;
+  }
+  this.pushMessage(chatUpdate.messages).catch(console.error);
+  let m = chatUpdate.messages[chatUpdate.messages.length - 1];
+  if (!m) {
+    return;
+  }
+  if (global.db.data == null) await global.loadDatabase();
+  /* Creditos a Otosaka (https://wa.me/51993966345) */
+
+  if (global.chatgpt.data === null) await global.loadChatgptDB();
+
+  /* ------------------------------------------------*/
   try {
-    m = smsg(this, m) || m
-    if (!m) return
-    m.exp = 0
-    m.credit = false
-    m.bank = false
-    m.chicken = false
+    m = smsg(this, m) || m;
+    if (!m) {
+      return;
+    }
+    global.mconn = m
+    mconn = m
+    m.exp = 0;
+    m.money = false;
+    m.limit = false;
     try {
       // TODO: use loop to insert data instead of this
-      let user = global.db.data.users[m.sender];
+      const user = global.db.data.users[m.sender];
+      /* Creditos a Otosaka (https://wa.me/51993966345) */
 
-// Initialize user data if it doesn't exist
-if (typeof user !== 'object') global.db.data.users[m.sender] = {};
+      const chatgptUser = global.chatgpt.data.users[m.sender];
+      if (typeof chatgptUser !== 'object') {
+        global.chatgpt.data.users[m.sender] = [];
+      }
 
-if (user) {
-  // Ensure default values for user fields
-    if (!isNumber(user.exp)) user.exp = 0;
-    if (!isNumber(user.credit)) user.credit = 10;
-    if (!isNumber(user.bank)) user.bank = 0;
-    if (!isNumber(user.chicken)) user.chicken = 0;
-    if (!isNumber(user.lastclaim)) user.lastclaim = 0;
-    if (!('registered' in user)) user.registered = false;
-
-    // User registration defaults
-    if (!user.registered) {
-    if (!('name' in user)) user.name = m.name;
-    if (!isNumber(user.age)) user.age = -1;
-    if (!isNumber(user.regTime)) user.regTime = -1;
-  }
-
-     // Ensure default values for other fields
-     if (!isNumber(user.afk)) user.afk = -1;
-     if (!('afkReason' in user)) user.afkReason = '';
-     if (!('banned' in user)) user.banned = false;
-     if (!isNumber(user.warn)) user.warn = 0;
-     if (!isNumber(user.level)) user.level = 0;
-     if (!('role' in user)) user.role = 'Tadpole';
-     if (!('autolevelup' in user)) user.autolevelup = false;
-     if (!isNumber(user.messages)) user.messages = 0;
-
-      // Increment total messages
-      user.messages++;
-  } else {
-      global.db.data.users[m.sender] = {
+      /* ------------------------------------------------*/
+      if (typeof user !== 'object') {
+        global.db.data.users[m.sender] = {};
+      }
+      if (user) {
+        // im gona cook this
+        // why the fuck nobody put the code like this in 3 years??????
+        // credit to mystic or skidy89
+        const dick = {
           afk: -1,
           wait: 0,
           afkReason: '',
@@ -494,8 +478,18 @@ if (user) {
           wortel: 0,
           language: 'ar',
           gameglx: {},  
-       }
+     }
+      for (const dicks in dick) {
+        if (user[dicks] === undefined || !user.hasOwnProperty(dicks)) {
+          user[dicks] = dick[dicks] // god pls forgive me
+        }
       }
+        // Increment the messages count
+    user.messages += 1;
+    // Save back to the database
+    global.db.data.users[m.sender] = user;
+      }
+      const akinator
       const akinator = global.db.data.users[m.sender].akinator;
       if (typeof akinator !== 'object') {
         global.db.data.users[m.sender].akinator = {};
