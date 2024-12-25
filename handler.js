@@ -51,6 +51,8 @@ export async function handler(chatUpdate) {
     m.exp = 0;
     m.money = false;
     m.limit = false;
+    m.bank = false;
+    m.chicken = false;
     try {
       // TODO: use loop to insert data instead of this
       const user = global.db.data.users[m.sender];
@@ -143,6 +145,7 @@ export async function handler(chatUpdate) {
           centaurexp: 0,
           centaurlastclaim: 0,
           centaurlastfeed: 0,
+          chicken: 0,
           clay: 0,
           coal: 0,
           coin: 0,
@@ -150,6 +153,7 @@ export async function handler(chatUpdate) {
           crystal: 0,
           cumi: 0,
           cupon: 0,
+          dailyMessages: 0,
           diamond: 3,
           dog: 0,
           dogexp: 0,
@@ -350,6 +354,7 @@ export async function handler(chatUpdate) {
           makananserigala: 0,
           mana: 20,
           mangga: 0,
+          messages: 1,
           misi: '',
           money: 15,
           monyet: 0,
