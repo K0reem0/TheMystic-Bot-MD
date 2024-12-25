@@ -8,7 +8,6 @@ import fs from 'fs';
 import chalk from 'chalk';
 import mddd5 from 'md5';
 import ws from 'ws';
-import Pino from 'pino'
 let mconn;
 
 /**
@@ -144,7 +143,6 @@ export async function handler(chatUpdate) {
           centaurexp: 0,
           centaurlastclaim: 0,
           centaurlastfeed: 0,
-          chicken: 0,
           clay: 0,
           coal: 0,
           coin: 0,
@@ -152,7 +150,6 @@ export async function handler(chatUpdate) {
           crystal: 0,
           cumi: 0,
           cupon: 0,
-          dailyMessages: 0,
           diamond: 3,
           dog: 0,
           dogexp: 0,
@@ -353,7 +350,6 @@ export async function handler(chatUpdate) {
           makananserigala: 0,
           mana: 20,
           mangga: 0,
-          messages: 1,
           misi: '',
           money: 15,
           monyet: 0,
@@ -476,20 +472,14 @@ export async function handler(chatUpdate) {
           wolflastfeed: 0,
           wood: 0,
           wortel: 0,
-          language: 'ar',
-          gameglx: {},  
-     }
+          language: 'es',
+          gameglx: {},
+        }
       for (const dicks in dick) {
         if (user[dicks] === undefined || !user.hasOwnProperty(dicks)) {
           user[dicks] = dick[dicks] // god pls forgive me
         }
-      }
-        // Increment the messages count
-    user.messages += 1;
-    // Save back to the database
-    global.db.data.users[m.sender] = user;
-      }
-      const akinator
+      }}
       const akinator = global.db.data.users[m.sender].akinator;
       if (typeof akinator !== 'object') {
         global.db.data.users[m.sender].akinator = {};
