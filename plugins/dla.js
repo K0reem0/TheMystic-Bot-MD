@@ -108,7 +108,7 @@ if (/^دزمها$/i.test(m.text) ) { //sem prefixo
 
 }
 
- if (/^الزعيم$/i.test(m.text) ) { //sem prefixo 
+ if (/^كريس$/i.test(m.text) ) { //sem prefixo 
  conn.reply(m.chat, `*الزعيم كريس*`, m) //wm, null, [['Menu', '#menu']], m) botones :V 
 
 }
