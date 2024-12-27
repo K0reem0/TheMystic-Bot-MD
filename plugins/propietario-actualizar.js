@@ -1,60 +1,54 @@
-import { execSync } from 'child_process';
+import { execSync } from 'child_process'
 
-const handler = async (m, { conn, text }) => {
+let handler = async (m, { conn }) => {
   try {
-    // Attempt to pull the latest updates from Git
-    const stdout = execSync('git pull' + (m.fromMe && text ? ' ' + text : ''));
-    let messager = stdout.toString();
+    // Set the GitHub username and repository
+    const GITHUB_USERNAME = 'aurtherle';  // GitHub username
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;  // GitHub personal access token from environment variables
+    const GITHUB_REPO = 'TheMystic-Bot-MD';  // Repository name
 
-    // Check the output message
-    if (messager.includes('Already up to date.')) {
-      messager = 'The repository is already up-to-date.';
-    }
-    if (messager.includes('Updating')) {
-      messager = 'Repository updated successfully:\n' + stdout.toString();
+    // Ensure the token is set
+    if (!GITHUB_TOKEN) {
+      return conn.reply(m.chat, 'GitHub token is missing. Please set GITHUB_TOKEN in your environment variables.', m);
     }
 
-    // Send the response message
-    conn.reply(m.chat, messager, m);
-  } catch {
-    try {
-      // Check for any uncommitted changes or conflicts
-      const status = execSync('git status --porcelain');
-      if (status.length > 0) {
-        const conflictedFiles = status
-          .toString()
-          .split('\n')
-          .filter(line => line.trim() !== '')
-          .map(line => {
-            if (
-              line.includes('.npm/') ||
-              line.includes('.cache/') ||
-              line.includes('tmp/') ||
-              line.includes('MysticSession/') ||
-              line.includes('npm-debug.log')
-            ) {
-              return null;
-            }
-            return '*→ ' + line.slice(3) + '*';
-          })
-          .filter(Boolean);
+    // Set Git username and email for the current repository (required for commits)
+    execSync('git config user.name "aurtherle"');
+    execSync('git config user.email "hatg4179@gmail.com"');
 
-        if (conflictedFiles.length > 0) {
-          const errorMessage = `Conflicts or uncommitted changes found:\n\n${conflictedFiles.join('\n')}.*`;
-          await conn.reply(m.chat, errorMessage, m);
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      let errorMessage2 = 'An error occurred while checking the repository status.';
-      if (error.message) {
-        errorMessage2 += '\n*- Error Message:* ' + error.message;
-      }
-      await conn.reply(m.chat, errorMessage2, m);
-    }
+    // Pull the latest changes from the GitHub repository
+    const remoteUrl = `https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/${GITHUB_USERNAME}/${GITHUB_REPO}.git`;
+    const pullOutput = execSync(`git pull ${remoteUrl} master`);  // Use 'main' if your default branch is 'main'
+
+    // Get the commit history since the last pull
+    const logOutput = execSync('git log --oneline -n 5');  // Show the last 5 commits (adjust as needed)
+
+    // Compile all the information (no file changes)
+    const response = `
+Successfully pulled the latest changes from GitHub!
+
+### Commit History:
+\`\`\`
+${logOutput.toString()}
+\`\`\`
+
+Pull Output:
+\`\`\`
+${pullOutput.toString()}
+\`\`\`
+    `;
+
+    // Notify the user with the pull details
+    conn.reply(m.chat, response, m);
+  } catch (e) {
+    // Handle errors and notify the user
+    conn.reply(m.chat, 'Error pulling changes from GitHub: ' + e.message, m);
   }
-};
+}
 
-handler.command = /^(update|actualizar|gitpull)$/i;
-handler.rowner = true;
+handler.help = ['pull']
+handler.tags = ['owner']
+handler.command = ['pull', 'download']
+handler.rowner = true
+
 export default handler;

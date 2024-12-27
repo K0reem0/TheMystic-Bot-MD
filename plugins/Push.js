@@ -3,9 +3,9 @@ import { execSync } from 'child_process'
 let handler = async (m, { conn, text }) => {
   try {
     // Set the GitHub username and repository
-    const GITHUB_USERNAME = 'aurtherle';  // GitHub username from the URL
+    const GITHUB_USERNAME = 'aurtherle';  // GitHub username
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;  // GitHub personal access token from environment variables
-    const GITHUB_REPO = 'TheMystic-Bot-MD';  // Repository name from the URL
+    const GITHUB_REPO = 'TheMystic-Bot-MD';  // Repository name
 
     // Ensure the token is set
     if (!GITHUB_TOKEN) {
@@ -19,6 +19,9 @@ let handler = async (m, { conn, text }) => {
     // Add all local changes to the staging area
     execSync('git add .');
 
+    // Get the list of staged files that will be pushed
+    const stagedFiles = execSync('git diff --cached --name-only').toString();
+
     // Commit changes with a default or custom message
     const commitMessage = text || 'Update from bot';
     execSync(`git commit -m "${commitMessage}"`);
@@ -27,8 +30,26 @@ let handler = async (m, { conn, text }) => {
     const remoteUrl = `https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/${GITHUB_USERNAME}/${GITHUB_REPO}.git`;
     execSync(`git push ${remoteUrl} HEAD`);
 
-    // Notify the user of the successful push
-    conn.reply(m.chat, 'Changes have been successfully pushed to GitHub!', m);
+    // Get the latest commit details (commit hash and message)
+    const logOutput = execSync('git log -1 --oneline').toString();
+
+    // Compile the information to send back to the user
+    const response = `
+Successfully pushed the changes to GitHub!
+
+### Commit Details:
+\`\`\`
+${logOutput.trim()}
+\`\`\`
+
+### Files Pushed:
+\`\`\`
+${stagedFiles.trim()}
+\`\`\`
+    `;
+
+    // Notify the user with the push details
+    conn.reply(m.chat, response, m);
   } catch (e) {
     // Handle errors and notify the user
     conn.reply(m.chat, 'Error pushing changes to GitHub: ' + e.message, m);
@@ -37,7 +58,7 @@ let handler = async (m, { conn, text }) => {
 
 handler.help = ['push']
 handler.tags = ['owner']
-handler.command = ['رفع', 'upload']
+handler.command = ['push', 'upload']
 handler.rowner = true
 
 export default handler;
