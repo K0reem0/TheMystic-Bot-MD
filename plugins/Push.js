@@ -39,33 +39,39 @@ let handler = async (m, { conn, text }) => {
     // Get the list of staged files
     const stagedFiles = execSync('git diff --cached --name-only').toString();
 
+    if (!stagedFiles) {
+      return conn.reply(m.chat, 'No files to push.', m);
+    }
+
     // Commit changes with a default or custom message
     const commitMessage = text || 'Update from bot';
     execSync(`git commit -m "${commitMessage}"`);
 
-    // Skip pushing to GitHub (as per your request)
+    // Push changes to the GitHub repository using the personal access token
+    const remoteUrl = `https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/${GITHUB_USERNAME}/${GITHUB_REPO}.git`;
+    execSync(`git push ${remoteUrl} HEAD`);
 
-    // Compile the information to send back to the user
+    // Get the latest commit details (commit hash and message)
     const logOutput = execSync('git log -1 --oneline').toString();
     const response = `
-Successfully staged and committed the changes locally!
+Successfully pushed the changes to GitHub!
 
 ### Commit Details:
 \`\`\`
 ${logOutput.trim()}
 \`\`\`
 
-### Files Committed:
+### Files Pushed:
 \`\`\`
 ${stagedFiles.trim()}
 \`\`\`
     `;
 
-    // Notify the user with the commit details
+    // Notify the user with the push details
     conn.reply(m.chat, response, m);
   } catch (e) {
     // Handle errors and notify the user
-    conn.reply(m.chat, 'Error processing files: ' + e.message, m);
+    conn.reply(m.chat, 'Error pushing changes to GitHub: ' + e.message, m);
   }
 };
 
