@@ -35,7 +35,7 @@ if (/^كل تبن$/i.test(m.text) ) { //sem prefixo
 }
 
 if (/^دزمها$/i.test(m.text) ) { //sem prefixo 
- conn.reply(m.chat, `*ِاستح*`, m) //wm, null, [['Menu', '#menu']], m) botones :V 
+ conn.reply(m.chat, `*استح*`, m) //wm, null, [['Menu', '#menu']], m) botones :V 
 
 }
 
