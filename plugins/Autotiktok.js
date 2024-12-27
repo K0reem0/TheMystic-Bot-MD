@@ -44,7 +44,7 @@ const askDownloadChoice = async (m, conn, link) => {
       userChoices[m.sender] = { link }; // Store the user's link temporarily
 
       const messageText = `🎥 *ماذا تريد تحميله؟*\n\n` +
-        `1️⃣ *بدون علامة مائية (WT)* - ${media.size_wm}\n` +
+        `1️⃣ *مع علامة مائية (WT)* - ${media.size_wm}\n` +
         `2️⃣ *الجودة الأصلية (ORG)* - ${media.size_org}\n` +
         `3️⃣ *جودة HD* - ${media.size_hd}\n\n` +
         `*أرسل رقم الخيار لتحميل المحتوى.*`;
