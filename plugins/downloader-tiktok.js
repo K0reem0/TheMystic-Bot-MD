@@ -1,77 +1,67 @@
 import axios from 'axios';
 
-const handler = async (m, { conn, args }) => {
+const handler = async (m, { conn, args, command, usedPrefix }) => {
+  // Validate the message object
   if (!m || typeof m !== 'object') {
     console.log("Invalid message object.");
     return;
   }
 
-  // Validate arguments
-  if (!args[0]) {
-    throw `*وين لينك التيك توك؟*`;
+  // Regex for validating TikTok URLs
+  const tiktokUrlRegex = /(?:https?:\/\/)?(?:w{3}|vm|vt|t)?\.?tiktok\.com\/([^\s&]+)/gi;
+
+  // Check if a valid URL is provided
+  if (!args[0] || !tiktokUrlRegex.test(args[0])) {
+    throw `*وين رابط التيكتوك الصحيح ؟*`;
   }
 
-  // Expand shortened TikTok URL
-  let tiktokUrl = args[0];
-  try {
-    const response = await axios.get(tiktokUrl, { maxRedirects: 0, validateStatus: (status) => status === 302 });
-    tiktokUrl = response.headers.location; // Get the expanded URL
-  } catch (error) {
-    console.error("Error expanding TikTok URL:", error);
-    throw `*الرابط غير صالح أو قصير جدًا. تأكد من أنه صحيح.*`;
-  }
-
-  // Validate TikTok URL
-  if (!/^https?:\/\/(www\.)?tiktok\.com\/.+/.test(tiktokUrl)) {
-    throw `*تأكد أن الرابط صحيح من تيك توك.*`;
-  }
-
-  // Inform the user about the processing
+  // Notify the user that processing has started
   const { key } = await conn.sendMessage(
     m.chat,
-    { text: "جاري المعالجة..." },
+    { text: "جاري التحميل من تيكتوك..." },
     { quoted: m }
   );
+  await conn.sendMessage(m.chat, { text: "صبر قليلاً...", edit: key });
 
   try {
-    // Fetch TikTok video details using the API
-    const response = await axios.get(`https://api.dorratz.com/v2/tiktok-dl?url=${tiktokUrl}`);
+    // Make API request to download TikTok video
+    const response = await axios.get(`https://api.dorratz.com/v2/tiktok-dl?url=${args[0]}`);
     const result = response.data;
 
-    if (result.status && result.data && result.data.media) {
-      const { media, author, title } = result.data;
+    if (result.status && result.data?.media?.org) {
+      const media = result.data.media;
+      const author = result.data.author;
+      const caption = `✅ *تم التحميل بنجاح!*\n\n` +
+                      `🎥 *العنوان:* ${result.data.title}\n` +
+                      `⏱ *المدة:* ${result.data.duration} ثانية\n` +
+                      `👤 *الناشر:* ${author.nickname} (${author.username})\n` +
+                      `❤️ *الإعجابات:* ${result.data.like}\n` +
+                      `🔁 *المشاركات:* ${result.data.share}\n` +
+                      `💬 *التعليقات:* ${result.data.comment}\n\n` +
+                      `📥 *روابط إضافية:*\n` +
+                      `• [جودة أصلية](${media.org})\n` +
+                      `• [بدون علامة مائية](${media.wm})\n` +
+                      `• [HD](${media.hd})\n` +
+                      `• [الموسيقى](${media.music})`;
 
-      // Use HD video if available; fallback to original video without watermark
-      const videoUrl = media.hd || media.org;
-
-      if (!videoUrl) {
-        throw new Error("HD and original video not available.");
-      }
-
-      // Send the video (HD if available)
-      await conn.sendFile(
-        m.chat,
-        videoUrl,
-        'tiktok.mp4',
-        `🎥 *العنوان*: ${title}\n👤 *المستخدم*: ${author.nickname} (${author.username})\n\n✅ *تم تحميل الفيديو !*`,
-        m
-      );
+      // Send the video file (original quality) to the user
+      await conn.sendFile(m.chat, media.org, 'tiktok.mp4', caption, m);
     } else {
-      throw new Error("فشل الحصول على الفيديو. تحقق من الرابط أو حاول مرة أخرى.");
+      throw new Error("رابط غير صالح أو حدث خطأ أثناء التحميل.");
     }
-  } catch (error) {
-    console.error("Error downloading TikTok video:", error);
+  } catch (e) {
+    console.error("An error occurred:", e.message);
 
-    // Inform the user about the error
+    // Send an error message to the user
     await conn.sendMessage(
       m.chat,
-      { text: "⚠️ حدث خطأ أثناء معالجة الطلب. حاول مرة أخرى لاحقًا." },
+      { text: `⚠️ خطأ: ${e.message || 'لم نتمكن من تحميل الفيديو. حاول مرة أخرى لاحقًا.'}` },
       { edit: key }
     );
   }
 };
 
-handler.help = ['tiktok <link tt>'];
+handler.help = ['tiktok <link tiktok>'];
 handler.tags = ['downloader'];
 handler.command = /^(تيك|tik)$/i;
 
