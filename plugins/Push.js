@@ -16,27 +16,25 @@ let handler = async (m, { conn, text }) => {
     execSync('git config user.name "aurtherle"');
     execSync('git config user.email "hatg4179@gmail.com"');
 
-    // Get all local changes
-    const allFiles = execSync('git diff --name-only').toString().trim().split('\n');
-
-    // Filter out files to be ignored
-    const filesToStage = allFiles.filter(line => {
-      return !(
-        line.includes('.npm/') ||
-        line.includes('.cache/') ||
-        line.includes('tmp/') ||
-        line.includes('MysticSession/') ||
-        line.includes('npm-debug.log')
-      );
+    // Get the list of all files and filter unwanted files/directories
+    const files = execSync('git ls-files --others --modified --exclude-standard').toString().trim().split('\n');
+    const filteredFiles = files.filter((file) => {
+      if (
+        file.includes('.npm/') ||
+        file.includes('.cache/') ||
+        file.includes('MysticSession/') ||
+        file.includes('npm-debug.log') ||
+        (file.startsWith('tmp/') && file !== 'tmp/')
+      ) {
+        return false; // Exclude these files/directories
+      }
+      return true; // Include all other files
     });
 
-    // If no files remain after filtering, exit the process
-    if (filesToStage.length === 0) {
-      return conn.reply(m.chat, 'No valid files to commit after filtering.', m);
+    // Stage only the filtered files
+    for (const file of filteredFiles) {
+      execSync(`git add "${file}"`);
     }
-
-    // Stage the filtered files
-    filesToStage.forEach(file => execSync(`git add "${file}"`));
 
     // Get the list of staged files
     const stagedFiles = execSync('git diff --cached --name-only').toString();
@@ -45,19 +43,19 @@ let handler = async (m, { conn, text }) => {
     const commitMessage = text || 'Update from bot';
     execSync(`git commit -m "${commitMessage}"`);
 
-    // Get the latest commit details (commit hash and message)
-    const logOutput = execSync('git log -1 --oneline').toString();
+    // Skip pushing to GitHub (as per your request)
 
     // Compile the information to send back to the user
+    const logOutput = execSync('git log -1 --oneline').toString();
     const response = `
-Successfully staged and committed changes locally!
+Successfully staged and committed the changes locally!
 
 ### Commit Details:
 \`\`\`
 ${logOutput.trim()}
 \`\`\`
 
-### Files Staged:
+### Files Committed:
 \`\`\`
 ${stagedFiles.trim()}
 \`\`\`
@@ -67,7 +65,7 @@ ${stagedFiles.trim()}
     conn.reply(m.chat, response, m);
   } catch (e) {
     // Handle errors and notify the user
-    conn.reply(m.chat, 'Error staging or committing changes: ' + e.message, m);
+    conn.reply(m.chat, 'Error processing files: ' + e.message, m);
   }
 };
 
