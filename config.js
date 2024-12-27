@@ -40,10 +40,10 @@ global.imagen4 = fs.createReadStream('./src/assets/images/menu/languages/en/menu
 global.imagen5 = fs.createReadStream('./src/assets/images/menu/languages/ru/menu.png');*/
 
 global.imagen1 = fs.readFileSync('./src/assets/images/menu/languages/es/menu.png');
-global.imagen2 = fs.readFileSync('./src/assets/images/menu/languages/pt/menu.png');
-global.imagen3 = fs.readFileSync('./src/assets/images/menu/languages/fr/menu.png')
-global.imagen4 = fs.readFileSync('./src/assets/images/menu/languages/en/menu.png')
-global.imagen5 = fs.readFileSync('./src/assets/images/menu/languages/ru/menu.png')
+global.imagen2 = fs.readFileSync('./src/assets/images/menu/languages/es/menu.png');
+global.imagen3 = fs.readFileSync('./src/assets/images/menu/languages/es/menu.png');
+global.imagen4 = fs.readFileSync('./src/assets/images/menu/languages/es/menu.png');
+global.imagen5 = fs.readFileSync('./src/assets/images/menu/languages/es/menu.png');
 
 global.mods = [];
 
@@ -59,9 +59,9 @@ global.tiempo = d.toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', s
 global.wm2 = `${dia} ${fecha}\nAURTHER`;
 global.gt = 'AURTHER';
 global.mysticbot = 'AURTHER';
-global.channel = 'https://whatsapp.com/channel/0029Vaein6eInlqIsCXpDs3y';
-global.md = 'https://github.com/BrunoSobrino/TheMystic-Bot-MD';
-global.mysticbot = 'https://github.com/BrunoSobrino/TheMystic-Bot-MD';
+global.channel = 'https://whatsapp.com/channel/0029Vak3oVNISTkBhE5ypj43';
+global.md = 'https://whatsapp.com/channel/0029Vak3oVNISTkBhE5ypj43';
+global.mysticbot = 'https://whatsapp.com/channel/0029Vak3oVNISTkBhE5ypj43';
 global.waitt = '*_[ ⏳ ] صبر..._*';
 global.waittt = '*_[ ⏳ ] صبر..._*';
 global.waitttt = '*_[ ⏳ ] صبر..._*';
