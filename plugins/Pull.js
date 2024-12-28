@@ -1,80 +1,29 @@
-import { execSync } from 'child_process';
+import { execSync } from 'child_process'
 
 let handler = async (m, { conn }) => {
   try {
-    const GITHUB_USERNAME = 'aurtherle'; // GitHub username
-    const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // GitHub personal access token
-    const GITHUB_REPO = 'TheMystic-Bot-MD'; // Repository name
+    // Set the GitHub username and repository
+    const GITHUB_USERNAME = 'aurtherle';  // GitHub username
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;  // GitHub personal access token from environment variables
+    const GITHUB_REPO = 'TheMystic-Bot-MD';  // Repository name
 
+    // Ensure the token is set
     if (!GITHUB_TOKEN) {
       return conn.reply(m.chat, 'GitHub token is missing. Please set GITHUB_TOKEN in your environment variables.', m);
     }
 
-    // Set Git username and email for this repository
-    execSync('git config --local user.name "aurtherle"');
-    execSync('git config --local user.email "hatg4179@gmail.com"');
+    // Set Git username and email for the current repository (required for commits)
+    execSync('git config user.name "aurtherle"');
+    execSync('git config user.email "hatg4179@gmail.com"');
 
-    // Form the remote URL
+    // Pull the latest changes from the GitHub repository
     const remoteUrl = `https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/${GITHUB_USERNAME}/${GITHUB_REPO}.git`;
+    const pullOutput = execSync(`git pull ${remoteUrl} master`);  // Use 'main' if your default branch is 'main'
 
-    // Check the status of the repository
-    const status = execSync('git status --porcelain');
+    // Get the commit history since the last pull
+    const logOutput = execSync('git log --oneline -n 5');  // Show the last 5 commits (adjust as needed)
 
-    if (status.length > 0) {
-      const conflictedFiles = status
-        .toString()
-        .split('\n')
-        .filter(line => line.trim() !== '') // Remove empty lines
-        .map(line => {
-          if (
-            line.includes('.npm/') ||
-            line.includes('.cache/') ||
-            line.includes('tmp/') ||
-            line.includes('MysticSession/') ||
-            line.includes('npm-debug.log')
-          ) {
-            return null; // Filter out unwanted files
-          }
-          return line.trim();
-        })
-        .filter(Boolean); // Remove null values
-
-      if (conflictedFiles.length > 0) {
-        // Stash local changes if any
-        execSync('git stash save "Auto-stashing local changes before pull"');
-        const conflictMessage = `
-### Conflict Detected!
-The following files have conflicts or uncommitted changes:
-
-\`\`\`
-${conflictedFiles.join('\n')}
-\`\`\`
-
-We have automatically stashed your local changes and will proceed with pulling the latest changes from GitHub.
-        `;
-        conn.reply(m.chat, conflictMessage.trim(), m);
-      }
-    }
-
-    // Pull the latest changes from GitHub
-    let pullOutput;
-    try {
-      pullOutput = execSync(`git pull ${remoteUrl} master`); // Adjust branch as necessary
-    } catch (e) {
-      if (e.message.includes('would be overwritten by merge')) {
-        return conn.reply(m.chat, 'Your local changes would be overwritten by the merge. Please commit or stash your changes before pulling.', m);
-      }
-      throw e; // Rethrow other errors
-    }
-
-    // Get the latest 5 commits from GitHub
-    const logOutput = execSync('git log --oneline -n 5');
-
-    // Restore the stashed changes if any were stashed
-    if (conflictedFiles.length > 0) {
-      execSync('git stash pop');
-    }
-
+    // Compile all the information (no file changes)
     const response = `
 Successfully pulled the latest changes from GitHub!
 
@@ -83,21 +32,23 @@ Successfully pulled the latest changes from GitHub!
 ${logOutput.toString()}
 \`\`\`
 
-### Pull Output:
+Pull Output:
 \`\`\`
 ${pullOutput.toString()}
 \`\`\`
     `;
 
-    conn.reply(m.chat, response.trim(), m);
+    // Notify the user with the pull details
+    conn.reply(m.chat, response, m);
   } catch (e) {
-    conn.reply(m.chat, `Error pulling changes from GitHub: ${e.message}`, m);
+    // Handle errors and notify the user
+    conn.reply(m.chat, 'Error pulling changes from GitHub: ' + e.message, m);
   }
-};
+}
 
-handler.help = ['pull'];
-handler.tags = ['owner'];
-handler.command = ['pull', 'تحديث'];
-handler.rowner = true;
+handler.help = ['pull']
+handler.tags = ['owner']
+handler.command = ['pull', 'تحديث']
+handler.rowner = true
 
 export default handler;
