@@ -23,11 +23,22 @@ let handler = async (m, { conn }) => {
     execSync('git config --local user.name "aurtherle"');
     execSync('git config --local user.email "hatg4179@gmail.com"');
 
-    // Pull latest changes
+    // Stash uncommitted changes (if any)
+    try {
+      execSync('git stash');
+    } catch (e) {
+      // Ignore errors if there are no changes to stash
+    }
+
+    // Pull the latest changes
     const remoteUrl = `https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/${GITHUB_USERNAME}/${GITHUB_REPO}.git`;
-    execSync(`git stash`); // Save uncommitted changes
     execSync(`git pull ${remoteUrl} ${defaultBranch}`);
-    execSync(`git stash pop`); // Restore uncommitted changes (if needed)
+
+    // Pop the stash only if stash entries exist
+    const stashList = execSync('git stash list').toString();
+    if (stashList.trim()) {
+      execSync('git stash pop');
+    }
 
     // Commit changes to persist
     execSync('git add .');
