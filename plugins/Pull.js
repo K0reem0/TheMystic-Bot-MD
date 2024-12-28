@@ -5,7 +5,6 @@ let handler = async (m, { conn }) => {
     const GITHUB_USERNAME = 'aurtherle';
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     const GITHUB_REPO = 'TheMystic-Bot-MD';
-    const BRANCH = 'main'; // Adjust branch if needed
 
     if (!GITHUB_TOKEN) {
       return conn.reply(
@@ -15,6 +14,11 @@ let handler = async (m, { conn }) => {
       );
     }
 
+    // Detect the default branch dynamically
+    const defaultBranch = execSync(
+      'git symbolic-ref refs/remotes/origin/HEAD | sed "s@^refs/remotes/origin/@@g"'
+    ).toString().trim();
+
     // Configure Git username and email for commits
     execSync('git config --local user.name "aurtherle"');
     execSync('git config --local user.email "hatg4179@gmail.com"');
@@ -22,7 +26,7 @@ let handler = async (m, { conn }) => {
     // Pull latest changes
     const remoteUrl = `https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/${GITHUB_USERNAME}/${GITHUB_REPO}.git`;
     execSync(`git stash`); // Save uncommitted changes
-    execSync(`git pull ${remoteUrl} ${BRANCH}`);
+    execSync(`git pull ${remoteUrl} ${defaultBranch}`);
     execSync(`git stash pop`); // Restore uncommitted changes (if needed)
 
     // Commit changes to persist
