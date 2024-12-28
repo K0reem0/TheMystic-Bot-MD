@@ -117,6 +117,6 @@ function generateHint(name, requested) {
 
 handler.help = ['guesseye']; // Command help
 handler.tags = ['game'];
-handler.command = /^ع|عين/i; // Matches Arabic commands for "eye"
+handler.command = /^عين/i; // Matches Arabic commands for "eye"
 export const exp = 10000;
 export default handler;
