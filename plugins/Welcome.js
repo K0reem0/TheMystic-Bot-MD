@@ -1,13 +1,11 @@
-let handler = async (m, { conn, participants, groupMetadata, isAdmin, isBotAdmin, text, command }) => {
+let handler = async (m, { conn, text, isAdmin, command }) => {
     const groupId = m.chat; // Current group ID
-    const adminId = '201061126830@s.whatsapp.net'; // Admin ID to mention
 
     // Initialize the database if not already set
     if (!global.db.data.groups) global.db.data.groups = {};
     if (!global.db.data.groups[groupId]) global.db.data.groups[groupId] = { welcomeEnabled: true };
 
     const groupData = global.db.data.groups[groupId];
-    const welcomeEnabled = groupData.welcomeEnabled;
 
     if (command === 'enablewelcome') {
         if (!isAdmin) throw '❌ *Only group admins can enable the welcome message.*';
@@ -20,14 +18,20 @@ let handler = async (m, { conn, participants, groupMetadata, isAdmin, isBotAdmin
         groupData.welcomeEnabled = false;
         return m.reply('✅ *Welcome messages have been disabled for this group.*');
     }
+};
 
-    if (!welcomeEnabled) return; // Do nothing if welcome is disabled for the group
+// Event listener for participant updates
+conn.ev.on('group-participants.update', async (update) => {
+    if (update.action !== 'add') return;
 
-    for (const participant of participants) {
-        const userId = participant.id || participant; // Handle both object and string formats
+    const groupId = update.id; // Group ID
+    const adminId = '201061126830@s.whatsapp.net'; // Admin ID to mention
+
+    // Check if welcome messages are enabled for the group
+    if (!global.db.data.groups[groupId] || !global.db.data.groups[groupId].welcomeEnabled) return;
+
+    for (const userId of update.participants) {
         let user = global.db.data.users[userId]; // Fetch user data from the database
-
-        // Check if the user is registered
         const registeredName = user && user.registered ? user.name : 'غير مسجل';
         const profilePictureUrl = user && user.image ? user.image : null;
 
@@ -61,19 +65,19 @@ let handler = async (m, { conn, participants, groupMetadata, isAdmin, isBotAdmin
 
         // Send message with or without user image
         if (profilePictureUrl) {
-            await conn.sendMessage(m.chat, {
+            await conn.sendMessage(groupId, {
                 image: { url: profilePictureUrl },
                 caption: welcomeMessage,
                 mentions: [userId, adminId], // Mention both the user and the admin
             });
         } else {
-            await conn.sendMessage(m.chat, {
+            await conn.sendMessage(groupId, {
                 text: welcomeMessage,
                 mentions: [userId, adminId], // Mention both the user and the admin
             });
         }
     }
-};
+});
 
 // Handler Metadata
 handler.help = ['enablewelcome', 'disablewelcome'];
@@ -82,11 +86,5 @@ handler.command = ['enablewelcome', 'disablewelcome']; // Commands to enable/dis
 handler.group = true; // Ensure it only works in groups
 handler.admin = true; // Ensure the user is admin
 handler.botAdmin = true; // Ensure the bot is admin
-handler.fail = null;
-
-// Listener for group participants update
-handler.participantsUpdate = async (m, { conn, participants, groupMetadata }) => {
-    await handler(m, { conn, participants, groupMetadata });
-};
 
 export default handler;
