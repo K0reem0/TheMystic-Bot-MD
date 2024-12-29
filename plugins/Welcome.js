@@ -104,8 +104,8 @@ if (!global.welcomeListenerInitialized) {
 
 // Register the commands
 handler.command = {
-    enableWelcome: enableWelcomeCommand,
-    disableWelcome: disableWelcomeCommand,
+    تفعيل_ترحيب: enableWelcomeCommand,
+    ايقاف_ترحيب: disableWelcomeCommand,
 };
 handler.help = ['enablewelcome', 'disablewelcome'];
 handler.tags = ['group'];
