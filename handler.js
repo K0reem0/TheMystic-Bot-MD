@@ -612,7 +612,7 @@ export async function handler(chatUpdate) {
         
       const chats = { // i want to assign dick instead chats
           isBanned: false,
-          welcome: true,
+          welcome: false,
           detect: true,
           detect2: false,
           sWelcome: '',
