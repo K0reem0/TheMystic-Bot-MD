@@ -20,22 +20,23 @@ let handler = async (m, { conn, text, isAdmin, command }) => {
     }
 };
 
-// Event listener for participant updates
-conn.ev.on('group-participants.update', async (update) => {
-    if (update.action !== 'add') return;
+// Ensure only one listener is active
+if (!global.welcomeListenerInitialized) {
+    conn.ev.on('group-participants.update', async (update) => {
+        if (update.action !== 'add') return;
 
-    const groupId = update.id; // Group ID
-    const adminId = '201061126830@s.whatsapp.net'; // Admin ID to mention
+        const groupId = update.id; // Group ID
+        const adminId = '201061126830@s.whatsapp.net'; // Admin ID to mention
 
-    // Check if welcome messages are enabled for the group
-    if (!global.db.data.groups[groupId] || !global.db.data.groups[groupId].welcomeEnabled) return;
+        // Check if welcome messages are enabled for the group
+        if (!global.db.data.groups[groupId] || !global.db.data.groups[groupId].welcomeEnabled) return;
 
-    for (const userId of update.participants) {
-        let user = global.db.data.users[userId]; // Fetch user data from the database
-        const registeredName = user && user.registered ? user.name : 'غير مسجل';
-        const profilePictureUrl = user && user.image ? user.image : null;
+        for (const userId of update.participants) {
+            let user = global.db.data.users[userId]; // Fetch user data from the database
+            const registeredName = user && user.registered ? user.name : 'غير مسجل';
+            const profilePictureUrl = user && user.image ? user.image : null;
 
-        const welcomeMessage = `┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏
+            const welcomeMessage = `┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏
 
 مرحباً بك في نقابة اجارس
               ⊰🌨️⊱
@@ -63,21 +64,24 @@ conn.ev.on('group-participants.update', async (update) => {
 
 ┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏`;
 
-        // Send message with or without user image
-        if (profilePictureUrl) {
-            await conn.sendMessage(groupId, {
-                image: { url: profilePictureUrl },
-                caption: welcomeMessage,
-                mentions: [userId, adminId], // Mention both the user and the admin
-            });
-        } else {
-            await conn.sendMessage(groupId, {
-                text: welcomeMessage,
-                mentions: [userId, adminId], // Mention both the user and the admin
-            });
+            // Send message with or without user image
+            if (profilePictureUrl) {
+                await conn.sendMessage(groupId, {
+                    image: { url: profilePictureUrl },
+                    caption: welcomeMessage,
+                    mentions: [userId, adminId], // Mention both the user and the admin
+                });
+            } else {
+                await conn.sendMessage(groupId, {
+                    text: welcomeMessage,
+                    mentions: [userId, adminId], // Mention both the user and the admin
+                });
+            }
         }
-    }
-});
+    });
+
+    global.welcomeListenerInitialized = true; // Mark listener as initialized
+}
 
 // Handler Metadata
 handler.help = ['enablewelcome', 'disablewelcome'];
