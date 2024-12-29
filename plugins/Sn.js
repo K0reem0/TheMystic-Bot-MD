@@ -13,7 +13,7 @@ const handler = async (m, { conn, args, groupMetadata }) => {
   }
 
   const user = global.db.data.users[who];
-  const { name, kickTime } = user;
+  const { name, kickTime, image } = user;
 
   // Ensure name is not blank
   if (!name || name.trim() === '') {
@@ -35,7 +35,16 @@ const handler = async (m, { conn, args, groupMetadata }) => {
 
   replyMessage += `*❃ ──────⊰ ❀ ⊱────── ❃*`;
 
-  m.reply(replyMessage);
+  if (image) {
+    // Send the reply with the user's image
+    await conn.sendMessage(m.chat, {
+      image: { url: image },
+      caption: replyMessage,
+    });
+  } else {
+    // Send the reply without an image
+    m.reply(replyMessage);
+  }
 };
 
 handler.help = ['myns'];
