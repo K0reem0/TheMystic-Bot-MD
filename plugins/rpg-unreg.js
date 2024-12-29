@@ -18,13 +18,19 @@ let handler = async function (m, { conn, text, usedPrefix }) {
     }
   }
 
-  // Unregister the user
+  // Ensure the target user exists in the database
+  if (!global.db.data.users[targetUser]) {
+    throw `*المستخدم غير موجود في قاعدة البيانات*`;
+  }
+
+  // Unregister the user and clear the data
   global.db.data.users[targetUser].registered = false;
   global.db.data.users[targetUser].name = ''; // Clear the name
   global.db.data.users[targetUser].regTime = 0; // Reset registration time
+  global.db.data.users[targetUser].image = null; // Clear the image
 
   // Respond with a confirmation
-  m.reply(`*تست اللقب صار متوفر*`);
+  m.reply(`*تم حذف اللقب والصورة من قاعدة البيانات، الآن صار اللقب متوفر*`);
 };
 
 // Rest of the handler definition (help, tags, command, etc.) remains the same
@@ -37,4 +43,4 @@ handler.admin = true
 handler.botAdmin = true
 handler.fail = null
 
-export default handler
+export default handler;
