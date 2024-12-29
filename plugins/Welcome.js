@@ -20,8 +20,9 @@ let handler = async (m, { conn, text, isAdmin, command }) => {
     }
 };
 
-// Ensure only one listener is active
+// Ensure the listener is added only once
 if (!global.welcomeListenerInitialized) {
+    conn.ev.removeAllListeners('group-participants.update'); // Remove existing listeners
     conn.ev.on('group-participants.update', async (update) => {
         if (update.action !== 'add') return;
 
