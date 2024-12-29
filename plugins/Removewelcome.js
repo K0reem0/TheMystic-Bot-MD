@@ -1,8 +1,13 @@
 const handler = async (m, { conn }) => {
-  // Remove the welcome message from the chat's settings
+  // Check if a welcome message is set for the chat
   if (global.db.data.chats[m.chat].sWelcome) {
+    // Remove the welcome message
     delete global.db.data.chats[m.chat].sWelcome;
-    m.reply("تم إزالة رسالة الترحيب بنجاح!");
+    
+    // Set the welcome flag to false
+    global.db.data.chats[m.chat].welcome = false;
+
+    m.reply("تم إزالة رسالة الترحيب بنجاح وأصبح الترحيب معطلًا لهذا الدردشة.");
   } else {
     m.reply("لا توجد رسالة ترحيب تم تعيينها لهذا الدردشة.");
   }
