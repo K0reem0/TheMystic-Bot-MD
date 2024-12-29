@@ -411,6 +411,7 @@ global.reloadHandler = async function(restatConn) {
     isInit = true;
   }
   if (!isInit) {
+    // Remove existing listeners to prevent duplication
     conn.ev.off('messages.upsert', conn.handler);
     conn.ev.off('group-participants.update', conn.participantsUpdate);
     conn.ev.off('groups.update', conn.groupsUpdate);
@@ -418,43 +419,38 @@ global.reloadHandler = async function(restatConn) {
     conn.ev.off('call', conn.onCall);
     conn.ev.off('connection.update', conn.connectionUpdate);
     conn.ev.off('creds.update', conn.credsUpdate);
-  }
+}
 
-  // Para cambiar estos mensajes, solo los archivos en la carpeta de language, 
-  // busque la clave "handler" dentro del json y cámbiela si es necesario
-  //conn.welcome = '👋 مرحباً! \n@user';
-  conn.bye = '👋 إلى اللقاء! \n@user';
-  conn.spromote = '*[ ℹ️ ] @user تم ترقية إلى مشرف.*';
-  conn.sdemote = '*[ ℹ️ ] @user تم خفض رتبتك من المشرف.*';
-  conn.sDesc = '*[ ℹ️ ] تم تعديل وصف المجموعة.*';
-  conn.sSubject = '*[ ℹ️ ] تم تغيير اسم المجموعة.*';
-  conn.sIcon = '*[ ℹ️ ] تم تغيير صورة الملف الشخصي للمجموعة.*';
-  conn.sRevoke = '*[ ℹ️ ] تم إعادة تعيين رابط الدعوة للمجموعة.*';
+// Define welcome message behavior
+conn.welcome = '👋 مرحباً! \n@user';
+conn.bye = '👋 إلى اللقاء! \n@user';
+conn.spromote = '*[ ℹ️ ] @user تم ترقية إلى مشرف.*';
+conn.sdemote = '*[ ℹ️ ] @user تم خفض رتبتك من المشرف.*';
+conn.sDesc = '*[ ℹ️ ] تم تعديل وصف المجموعة.*';
+conn.sSubject = '*[ ℹ️ ] تم تغيير اسم المجموعة.*';
+conn.sIcon = '*[ ℹ️ ] تم تغيير صورة الملف الشخصي للمجموعة.*';
+conn.sRevoke = '*[ ℹ️ ] تم إعادة تعيين رابط الدعوة للمجموعة.*';
 
-  conn.handler = handler.handler.bind(global.conn);
-  conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
-  conn.groupsUpdate = handler.groupsUpdate.bind(global.conn);
-  conn.onDelete = handler.deleteUpdate.bind(global.conn);
-  conn.onCall = handler.callUpdate.bind(global.conn);
-  conn.connectionUpdate = connectionUpdate.bind(global.conn);
-  conn.credsUpdate = saveCreds.bind(global.conn, true);
+// Attach handler functions
+conn.handler = handler.handler.bind(global.conn);
+conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
+conn.groupsUpdate = handler.groupsUpdate.bind(global.conn);
+conn.onDelete = handler.deleteUpdate.bind(global.conn);
+conn.onCall = handler.callUpdate.bind(global.conn);
+conn.connectionUpdate = connectionUpdate.bind(global.conn);
+conn.credsUpdate = saveCreds.bind(global.conn, true);
 
-  const currentDateTime = new Date();
-  const messageDateTime = new Date(conn.ev);
-  if (currentDateTime >= messageDateTime) {
-    const chats = Object.entries(conn.chats).filter(([jid, chat]) => !jid.endsWith('@g.us') && chat.isChats).map((v) => v[0]);
-  } else {
-    const chats = Object.entries(conn.chats).filter(([jid, chat]) => !jid.endsWith('@g.us') && chat.isChats).map((v) => v[0]);
-  }
+// Add new listeners
+conn.ev.on('messages.upsert', conn.handler);
+conn.ev.on('group-participants.update', conn.participantsUpdate);
+conn.ev.on('groups.update', conn.groupsUpdate);
+conn.ev.on('message.delete', conn.onDelete);
+conn.ev.on('call', conn.onCall);
+conn.ev.on('connection.update', conn.connectionUpdate);
+conn.ev.on('creds.update', conn.credsUpdate);
 
-  conn.ev.on('messages.upsert', conn.handler);
-  conn.ev.on('group-participants.update', conn.participantsUpdate);
-  conn.ev.on('groups.update', conn.groupsUpdate);
-  conn.ev.on('message.delete', conn.onDelete);
-  conn.ev.on('call', conn.onCall);
-  conn.ev.on('connection.update', conn.connectionUpdate);
-  conn.ev.on('creds.update', conn.credsUpdate);
-  isInit = false;
+// Ensure `isInit` is updated correctly
+isInit = false;
   return true;
 };
 
