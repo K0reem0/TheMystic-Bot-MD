@@ -422,7 +422,7 @@ global.reloadHandler = async function(restatConn) {
 
   // Para cambiar estos mensajes, solo los archivos en la carpeta de language, 
   // busque la clave "handler" dentro del json y cámbiela si es necesario
-  conn.welcome = '👋 مرحباً! \n@user';
+  //conn.welcome = '👋 مرحباً! \n@user';
   conn.bye = '👋 إلى اللقاء! \n@user';
   conn.spromote = '*[ ℹ️ ] @user تم ترقية إلى مشرف.*';
   conn.sdemote = '*[ ℹ️ ] @user تم خفض رتبتك من المشرف.*';
