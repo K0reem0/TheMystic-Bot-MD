@@ -1,43 +1,58 @@
-let handler = async (m, { conn, text, isAdmin, command }) => {
-    const groupId = m.chat; // Current group ID
+// Initialize a global list for groups with welcome messages enabled
+global.welcomeEnabledGroups = global.welcomeEnabledGroups || [];
 
-    // Initialize the database if not already set
-    if (!global.db.data.groups) global.db.data.groups = {};
-    if (!global.db.data.groups[groupId]) global.db.data.groups[groupId] = { welcomeEnabled: true };
+// Command to enable welcome messages in a group
+async function enableWelcomeCommand(m, { conn, text, isGroup }) {
+    if (!isGroup) return m.reply('هذا الأمر يعمل في المجموعات فقط.');
+    const groupId = m.chat;
 
-    const groupData = global.db.data.groups[groupId];
-
-    if (command === 'enablewelcome') {
-        if (!isAdmin) throw '❌ *Only group admins can enable the welcome message.*';
-        groupData.welcomeEnabled = true;
-        return m.reply('✅ *Welcome messages have been enabled for this group.*');
+    if (global.welcomeEnabledGroups.includes(groupId)) {
+        return m.reply('تم تفعيل الترحيب بالفعل في هذه المجموعة.');
     }
 
-    if (command === 'disablewelcome') {
-        if (!isAdmin) throw '❌ *Only group admins can disable the welcome message.*';
-        groupData.welcomeEnabled = false;
-        return m.reply('✅ *Welcome messages have been disabled for this group.*');
-    }
-};
+    global.welcomeEnabledGroups.push(groupId);
+    m.reply('تم تفعيل رسائل الترحيب في هذه المجموعة.');
+}
 
-// Ensure the listener is added only once
+// Command to disable welcome messages in a group
+async function disableWelcomeCommand(m, { conn, text, isGroup }) {
+    if (!isGroup) return m.reply('هذا الأمر يعمل في المجموعات فقط.');
+    const groupId = m.chat;
+
+    const index = global.welcomeEnabledGroups.indexOf(groupId);
+    if (index === -1) {
+        return m.reply('رسائل الترحيب معطلة بالفعل في هذه المجموعة.');
+    }
+
+    global.welcomeEnabledGroups.splice(index, 1);
+    m.reply('تم تعطيل رسائل الترحيب في هذه المجموعة.');
+}
+
+// Welcome message handler
 if (!global.welcomeListenerInitialized) {
-    conn.ev.removeAllListeners('group-participants.update'); // Remove existing listeners
+    conn.ev.off('group-participants.update'); // Remove previous listeners
+
     conn.ev.on('group-participants.update', async (update) => {
         if (update.action !== 'add') return;
 
-        const groupId = update.id; // Group ID
+        const groupId = update.id;
+
+        // Check if the welcome message is enabled for this group
+        if (!global.welcomeEnabledGroups.includes(groupId)) return;
+
         const adminId = '201061126830@s.whatsapp.net'; // Admin ID to mention
 
-        // Check if welcome messages are enabled for the group
-        if (!global.db.data.groups[groupId] || !global.db.data.groups[groupId].welcomeEnabled) return;
-
         for (const userId of update.participants) {
-            let user = global.db.data.users[userId]; // Fetch user data from the database
-            const registeredName = user && user.registered ? user.name : 'غير مسجل';
-            const profilePictureUrl = user && user.image ? user.image : null;
+            try {
+                // Validate userId
+                if (!userId) continue;
 
-            const welcomeMessage = `┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏
+                const user = global.db.data.users[userId] || {};
+                const name = user.registered ? user.name : 'غير مسجل';
+                const profilePictureUrl = user.image || null;
+
+                // Construct the welcome message
+                const welcomeMessage = `┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏
 
 مرحباً بك في نقابة اجارس
               ⊰🌨️⊱
@@ -48,7 +63,7 @@ if (!global.welcomeListenerInitialized) {
 
 ┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏
  
-*✧ ♟️┋اللـــقـــب • 〘${registeredName}〙*
+*✧ ♟️┋اللـــقـــب • 〘${name}〙*
 
 *✧ 📧┋المـــنشـن • 〘@${userId.split('@')[0]}〙*
 
@@ -65,18 +80,21 @@ if (!global.welcomeListenerInitialized) {
 
 ┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏`;
 
-            // Send message with or without user image
-            if (profilePictureUrl) {
-                await conn.sendMessage(groupId, {
-                    image: { url: profilePictureUrl },
-                    caption: welcomeMessage,
-                    mentions: [userId, adminId], // Mention both the user and the admin
-                });
-            } else {
-                await conn.sendMessage(groupId, {
-                    text: welcomeMessage,
-                    mentions: [userId, adminId], // Mention both the user and the admin
-                });
+                // Send welcome message with or without image
+                if (profilePictureUrl) {
+                    await conn.sendMessage(groupId, {
+                        image: { url: profilePictureUrl },
+                        caption: welcomeMessage,
+                        mentions: [userId, adminId],
+                    });
+                } else {
+                    await conn.sendMessage(groupId, {
+                        text: welcomeMessage,
+                        mentions: [userId, adminId],
+                    });
+                }
+            } catch (error) {
+                console.error(`Error sending welcome message: ${error}`);
             }
         }
     });
@@ -84,12 +102,14 @@ if (!global.welcomeListenerInitialized) {
     global.welcomeListenerInitialized = true; // Mark listener as initialized
 }
 
-// Handler Metadata
+// Register the commands
+handler.command = {
+    enableWelcome: enableWelcomeCommand,
+    disableWelcome: disableWelcomeCommand,
+};
 handler.help = ['enablewelcome', 'disablewelcome'];
 handler.tags = ['group'];
-handler.command = ['enablewelcome', 'disablewelcome']; // Commands to enable/disable
-handler.group = true; // Ensure it only works in groups
-handler.admin = true; // Ensure the user is admin
-handler.botAdmin = true; // Ensure the bot is admin
+handler.group = true;
+handler.admin = true;
 
 export default handler;
