@@ -2,7 +2,7 @@ const handler = async (m, { conn }) => {
   // إعداد رسالة الترحيب الثابتة
   global.db.data.chats[m.chat].sWelcome = "always";
 
-  m.reply("تم خلي الترحيب علي");
+  m.reply("تم تعيين رسالة الترحيب بنجاح! سيتم إرسال الرسالة مع صورة دائمًا.");
 
   conn.ev.on('group-participants.update', async (update) => {
     if (update.action === 'add') {
@@ -22,7 +22,7 @@ const handler = async (m, { conn }) => {
 
         // نص الترحيب
         const welcomeMessage = `
-┓═━─┄⊹⊱ «◈» ⊰⊹┄─━═┏
+┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏
 
 مرحباََ بك في نقابة اجارس
               ⊰🌨️⊱
@@ -30,7 +30,8 @@ const handler = async (m, { conn }) => {
 وانضمامك معنــا و
 بكـل ما تحمله معاني الشـوق
 ⚜︎نتلهف لقراءة مشاركاتك⚜︎
-━─┄⊹⊱ «◈» ⊰⊹┄─━
+
+┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏
 
 *✧ ♟️┋اللـــقـــب • 〘${name}〙*
 
@@ -38,17 +39,18 @@ const handler = async (m, { conn }) => {
 
 *✧ 🧑🏻‍💻┋المسؤول  • 〘${adminMention}〙*
 
-━─┄⊹⊱ «◈» ⊰⊹┄─━
+┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏
 
   ◈ ⚜︎  قـروب الإعـلانـات 🗞️ ↯↯.
 〘 https://chat.whatsapp.com/LLucZEBpwec2n6PvwcRgHD 〙
 
-━─┄⊹⊱ «◈» ⊰⊹┄─━
+┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏
 
 *⚜︎ 📯 ┃ادارة•* ﹝𝑨𝒋𝒂𝒓𝒔﹞
 
-┛═━─┄⊹⊱ «◈» ⊰⊹┄─━═┗`;
+┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏`;
 
+        // إرسال الرسالة مع الصورة أو النص فقط
         if (image) {
           // إرسال الترحيب مع الصورة
           await conn.sendMessage(update.id, {
