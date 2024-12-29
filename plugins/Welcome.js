@@ -2,7 +2,7 @@ let handler = async (m, { conn, participants, groupMetadata }) => {
     const adminId = '201061126830@s.whatsapp.net'; // Admin ID to mention
 
     for (const participant of participants) {
-        const userId = participant; // The ID of the new member
+        const userId = participant.id || participant; // Handle both object and string formats
         let user = global.db.data.users[userId]; // Fetch user data from the database
 
         // Check if the user is registered
