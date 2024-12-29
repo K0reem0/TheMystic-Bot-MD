@@ -1,52 +1,53 @@
-// Initialize a global list for groups with welcome messages enabled
+// Store groups where welcome messages are enabled
 global.welcomeEnabledGroups = global.welcomeEnabledGroups || [];
 
 // Command to enable welcome messages in a group
-async function enableWelcomeCommand(m, { conn, text, isGroup }) {
-    if (!isGroup) return m.reply('هذا الأمر يعمل في المجموعات فقط.');
+async function enableWelcomeCommand(m, { isGroup, isAdmin }) {
+    if (!isGroup) return m.reply('❌ هذا الأمر يعمل في المجموعات فقط.');
+    if (!isAdmin) return m.reply('❌ هذا الأمر مخصص للمشرفين فقط.');
+
     const groupId = m.chat;
 
     if (global.welcomeEnabledGroups.includes(groupId)) {
-        return m.reply('تم تفعيل الترحيب بالفعل في هذه المجموعة.');
+        return m.reply('✅ تم تفعيل الترحيب بالفعل في هذه المجموعة.');
     }
 
     global.welcomeEnabledGroups.push(groupId);
-    m.reply('تم تفعيل رسائل الترحيب في هذه المجموعة.');
+    m.reply('✅ تم تفعيل رسائل الترحيب في هذه المجموعة.');
 }
 
 // Command to disable welcome messages in a group
-async function disableWelcomeCommand(m, { conn, text, isGroup }) {
-    if (!isGroup) return m.reply('هذا الأمر يعمل في المجموعات فقط.');
+async function disableWelcomeCommand(m, { isGroup, isAdmin }) {
+    if (!isGroup) return m.reply('❌ هذا الأمر يعمل في المجموعات فقط.');
+    if (!isAdmin) return m.reply('❌ هذا الأمر مخصص للمشرفين فقط.');
+
     const groupId = m.chat;
 
     const index = global.welcomeEnabledGroups.indexOf(groupId);
     if (index === -1) {
-        return m.reply('رسائل الترحيب معطلة بالفعل في هذه المجموعة.');
+        return m.reply('✅ رسائل الترحيب معطلة بالفعل في هذه المجموعة.');
     }
 
     global.welcomeEnabledGroups.splice(index, 1);
-    m.reply('تم تعطيل رسائل الترحيب في هذه المجموعة.');
+    m.reply('✅ تم تعطيل رسائل الترحيب في هذه المجموعة.');
 }
 
-// Welcome message handler
+// Welcome message listener
 if (!global.welcomeListenerInitialized) {
-    conn.ev.off('group-participants.update'); // Remove previous listeners
+    conn.ev.off('group-participants.update'); // Remove duplicate listeners
 
     conn.ev.on('group-participants.update', async (update) => {
-        if (update.action !== 'add') return;
+        try {
+            if (update.action !== 'add') return;
 
-        const groupId = update.id;
+            const groupId = update.id;
 
-        // Check if the welcome message is enabled for this group
-        if (!global.welcomeEnabledGroups.includes(groupId)) return;
+            // Check if welcome is enabled for this group
+            if (!global.welcomeEnabledGroups.includes(groupId)) return;
 
-        const adminId = '201061126830@s.whatsapp.net'; // Admin ID to mention
+            const adminId = '201061126830@s.whatsapp.net'; // Admin ID to mention
 
-        for (const userId of update.participants) {
-            try {
-                // Validate userId
-                if (!userId) continue;
-
+            for (const userId of update.participants) {
                 const user = global.db.data.users[userId] || {};
                 const name = user.registered ? user.name : 'غير مسجل';
                 const profilePictureUrl = user.image || null;
@@ -80,7 +81,7 @@ if (!global.welcomeListenerInitialized) {
 
 ┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏`;
 
-                // Send welcome message with or without image
+                // Send the welcome message
                 if (profilePictureUrl) {
                     await conn.sendMessage(groupId, {
                         image: { url: profilePictureUrl },
@@ -93,19 +94,19 @@ if (!global.welcomeListenerInitialized) {
                         mentions: [userId, adminId],
                     });
                 }
-            } catch (error) {
-                console.error(`Error sending welcome message: ${error}`);
             }
+        } catch (error) {
+            console.error(`Error sending welcome message: ${error.message}`);
         }
     });
 
-    global.welcomeListenerInitialized = true; // Mark listener as initialized
+    global.welcomeListenerInitialized = true; // Ensure listener is initialized only once
 }
 
 // Register the commands
 handler.command = {
-    تفعيل_ترحيب: enableWelcomeCommand,
-    ايقاف_ترحيب: disableWelcomeCommand,
+    enableWelcome: enableWelcomeCommand,
+    disableWelcome: disableWelcomeCommand,
 };
 handler.help = ['enablewelcome', 'disablewelcome'];
 handler.tags = ['group'];
