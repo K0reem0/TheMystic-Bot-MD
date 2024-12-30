@@ -434,30 +434,28 @@ try {
   conn.ev.on('messages.upsert', async (message) => {
   try {
     const msg = message.messages[0];
-    const userId = msg.key.participant || msg.key.remoteJid;
+    const userId = msg.key.remoteJid || msg.key.participant || msg.pushName; // Identify the sender
     const users = global.db.data.users;
 
-    // Log user ID and message details for debugging
-    console.log('User ID:', userId);
-    console.log('Message Event:', message);
-
-    // Ensure users object exists
+    // Ensure the users database exists and initialize the user if not present
     if (!users[userId]) {
-      users[userId] = { totalMessages: 0 };
-      console.log(`User ${userId} initialized.`);
+      users[userId] = { totalMessages: 0 }; // Initialize the user data
+      console.log(`Initialized user ${userId}`);
     }
 
-    // Increment totalMessages
-    console.log(`Before Increment: ${users[userId]?.totalMessages}`);
+    // Increment the totalMessages count
     users[userId].totalMessages = (users[userId].totalMessages || 0) + 1;
-    console.log(`After Increment: ${users[userId].totalMessages}`);
 
-    // Save database if needed (implement global.saveDatabase if necessary)
+    // Debugging logs
+    console.log(`Message from ${userId}:`);
+    console.log(`Total messages for ${userId}: ${users[userId].totalMessages}`);
+
+    // Save the database if needed
     if (typeof global.saveDatabase === 'function') {
       global.saveDatabase();
     }
-  } catch (e) {
-    console.error('Error updating message count:', e);
+  } catch (error) {
+    console.error('Error processing message:', error);
   }
 });
   // Attach handler functions
