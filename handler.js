@@ -1098,7 +1098,7 @@ switch (action) {
           const isBotAdminNn = botTt2?.admin === 'admin' || false;
 
           text = (action === 'add' ? 
-            (chat.sWelcome || tradutor.texto1 || conn.welcome || 'Welcome, @user!')
+            (conn.welcome || chat.sWelcome || tradutor.texto1 || 'Welcome, @user!')
               .replace('@subject', await m?.conn?.getName(id))
               .replace('@desc', groupMetadata?.desc?.toString() || '*𝚂𝙸𝙽 𝙳𝙴𝚂𝙲𝚁𝙸𝙿𝙲𝙸𝙾𝙽*')
               .replace('@user', '@' + user.split('@')[0])
