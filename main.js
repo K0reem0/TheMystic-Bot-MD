@@ -392,101 +392,89 @@ let isInit = true;
 
 let handler = await import('./handler.js');
 global.reloadHandler = async function(restatConn) {
+  
 try { 
 const Handler = await import(`./handler.js?update=${Date.now()}`).catch(console.error);
 if (Object.keys(Handler || {}).length) handler = Handler;
+
+try {
+  if (restatConn) {
+    const oldChats = global.conn.chats;
+    try {
+      global.conn.ws.close();
+    } catch {}
+    conn.ev.removeAllListeners();
+    global.conn = makeWASocket(connectionOptions, { chats: oldChats });
+    store?.bind(conn);
+    isInit = true;
+  }
+
+  if (!isInit) {
+    // Remove existing listeners to prevent duplication
+    conn.ev.off('messages.upsert', conn.handler);
+    conn.ev.off('group-participants.update', conn.participantsUpdate);
+    conn.ev.off('groups.update', conn.groupsUpdate);
+    conn.ev.off('message.delete', conn.onDelete);
+    conn.ev.off('call', conn.onCall);
+    conn.ev.off('connection.update', conn.connectionUpdate);
+    conn.ev.off('creds.update', conn.credsUpdate);
+  }
+
+  // Define welcome message behavior
+  conn.welcome = `┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\nمرحباً بك في نقابة اجارس\n⊰🌨️⊱\n⚜︎ يسرنا تواجدك بيننا ⚜︎\nوانضمامك معنا وبكل ما تحمله معاني الشوق\n⚜︎ نتلهف لقراءة مشاركاتك ⚜︎\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n*✧ ♟️┋اللقب • 〘@name〙*\n*✧ 📧┋المنشن • 〘@user〙*\n*✧ 🧑🏻‍💻┋المسؤول  • 〘@admin〙*\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n◈ ⚜︎ قروب الإعلانات 🗞️ ↯↯\n〘 https://chat.whatsapp.com/LLucZEBpwec2n6PvwcRgHD 〙\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n*⚜︎ 📯 ┃ادارة•* ﹝𝑨𝒋𝒂𝒓𝒔﹞\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏`;
+  conn.bye = '👋 إلى اللقاء! \n@user';
+  conn.spromote = '*[ ℹ️ ] @user تم ترقية إلى مشرف.*';
+  conn.sdemote = '*[ ℹ️ ] @user تم خفض رتبتك من المشرف.*';
+  conn.sDesc = '*[ ℹ️ ] تم تعديل وصف المجموعة.*';
+  conn.sSubject = '*[ ℹ️ ] تم تغيير اسم المجموعة.*';
+  conn.sIcon = '*[ ℹ️ ] تم تغيير صورة الملف الشخصي للمجموعة.*';
+  conn.sRevoke = '*[ ℹ️ ] تم إعادة تعيين رابط الدعوة للمجموعة.*';
+
+  // Add the message counting logic
+  conn.ev.on('messages.upsert', async (message) => {
+    try {
+      const msg = message.messages[0];
+      const userId = msg.key.participant || msg.key.remoteJid;
+      const users = global.db.data.users;
+
+      if (!users[userId]) {
+        // Initialize user data if not present
+        users[userId] = { totalMessages: 0 };
+      }
+
+      // Increment the totalMessages counter
+      users[userId].totalMessages = (users[userId].totalMessages || 0) + 1;
+
+      console.log(`User ${userId} has now sent ${users[userId].totalMessages} messages.`);
+    } catch (e) {
+      console.error('Error updating message count:', e);
+    }
+  });
+
+  // Attach handler functions
+  conn.handler = handler.handler.bind(global.conn);
+  conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
+  conn.groupsUpdate = handler.groupsUpdate.bind(global.conn);
+  conn.onDelete = handler.deleteUpdate.bind(global.conn);
+  conn.onCall = handler.callUpdate.bind(global.conn);
+  conn.connectionUpdate = connectionUpdate.bind(global.conn);
+  conn.credsUpdate = saveCreds.bind(global.conn, true);
+
+  // Add new listeners
+  conn.ev.on('messages.upsert', conn.handler);
+  conn.ev.on('group-participants.update', conn.participantsUpdate);
+  conn.ev.on('groups.update', conn.groupsUpdate);
+  conn.ev.on('message.delete', conn.onDelete);
+  conn.ev.on('call', conn.onCall);
+  conn.ev.on('connection.update', conn.connectionUpdate);
+  conn.ev.on('creds.update', conn.credsUpdate);
+
+  // Ensure `isInit` is updated correctly
+  isInit = false;
+  return true;
 } catch (e) {
   console.error(e);
 }
-if (restatConn) {
-  const oldChats = global.conn.chats;
-  try {
-    global.conn.ws.close();
-  } catch { }
-  conn.ev.removeAllListeners();
-  global.conn = makeWASocket(connectionOptions, {chats: oldChats});
-  store?.bind(conn);
-  isInit = true;
-}
-if (!isInit) {
-  // Remove existing listeners to prevent duplication
-  conn.ev.off('messages.upsert', conn.handler);
-  conn.ev.off('group-participants.update', conn.participantsUpdate);
-  conn.ev.off('groups.update', conn.groupsUpdate);
-  conn.ev.off('message.delete', conn.onDelete);
-  conn.ev.off('call', conn.onCall);
-  conn.ev.off('connection.update', conn.connectionUpdate);
-  conn.ev.off('creds.update', conn.credsUpdate);
-}
-
-// Define welcome message behavior
-conn.welcome = `┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\nمرحباً بك في نقابة اجارس\n⊰🌨️⊱\n⚜︎ يسرنا تواجدك بيننا ⚜︎\nوانضمامك معنا وبكل ما تحمله معاني الشوق\n⚜︎ نتلهف لقراءة مشاركاتك ⚜︎\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n*✧ ♟️┋اللقب • 〘@name〙*\n*✧ 📧┋المنشن • 〘@user〙*\n*✧ 🧑🏻‍💻┋المسؤول  • 〘@admin〙*\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n◈ ⚜︎ قروب الإعلانات 🗞️ ↯↯\n〘 https://chat.whatsapp.com/LLucZEBpwec2n6PvwcRgHD 〙\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n*⚜︎ 📯 ┃ادارة•* ﹝𝑨𝒋𝒂𝒓𝒔﹞\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏`;
-conn.bye = '👋 إلى اللقاء! \n@user';
-conn.spromote = '*[ ℹ️ ] @user تم ترقية إلى مشرف.*';
-conn.sdemote = '*[ ℹ️ ] @user تم خفض رتبتك من المشرف.*';
-conn.sDesc = '*[ ℹ️ ] تم تعديل وصف المجموعة.*';
-conn.sSubject = '*[ ℹ️ ] تم تغيير اسم المجموعة.*';
-conn.sIcon = '*[ ℹ️ ] تم تغيير صورة الملف الشخصي للمجموعة.*';
-conn.sRevoke = '*[ ℹ️ ] تم إعادة تعيين رابط الدعوة للمجموعة.*';
-
-// Attach handler functions
-conn.handler = handler.handler.bind(global.conn);
-conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
-conn.groupsUpdate = handler.groupsUpdate.bind(global.conn);
-conn.onDelete = handler.deleteUpdate.bind(global.conn);
-conn.onCall = handler.callUpdate.bind(global.conn);
-conn.connectionUpdate = connectionUpdate.bind(global.conn);
-conn.credsUpdate = saveCreds.bind(global.conn, true);
-
-// Add new listeners
-conn.ev.on('messages.upsert', async (messageEvent) => {
-  try {
-    const message = messageEvent.messages?.[0];
-    if (!message || !message.key || message.key.remoteJid === 'status@broadcast') return;
-
-    // Extract sender ID
-    const senderId = message.key.participant || message.key.remoteJid;
-
-    // Ensure the user exists in the database
-    const user = global.db.data.users[senderId] || (global.db.data.users[senderId] = {
-      totalMessages: 0,
-      dailyMessages: 0,
-      lastMessageReset: new Date().toDateString(),
-    });
-
-    const now = new Date();
-    const currentDate = now.toDateString();
-    const currentHour = now.getHours();
-
-    // Reset daily messages if the date has changed
-    if (user.lastMessageReset !== currentDate) {
-      user.dailyMessages = 0;
-      user.lastMessageReset = currentDate;
-    }
-
-    // Increment the total and daily message counters
-    user.totalMessages += 1;
-    if (currentHour >= 12) {
-      user.dailyMessages += 1;
-    }
-
-    console.log(`[INFO] Message from ${senderId}: Total: ${user.totalMessages}, Daily: ${user.dailyMessages}`);
-  } catch (error) {
-    console.error(`[ERROR] Failed to process message: ${error.message}`);
-  }
-});
-
-conn.ev.on('group-participants.update', conn.participantsUpdate);
-conn.ev.on('groups.update', conn.groupsUpdate);
-conn.ev.on('message.delete', conn.onDelete);
-conn.ev.on('call', conn.onCall);
-conn.ev.on('connection.update', conn.connectionUpdate);
-conn.ev.on('creds.update', conn.credsUpdate);
-
-// Ensure `isInit` is updated correctly
-isInit = false;
-return true;
-};
 
 const pluginFolder = global.__dirname(join(__dirname, './plugins/index'));
 const pluginFilter = (filename) => /\.js$/.test(filename);
