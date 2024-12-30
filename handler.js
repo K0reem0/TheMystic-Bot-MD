@@ -49,7 +49,7 @@ try {
   global.mconn = m;
   mconn = m;
   m.exp = 0;
-  m.money = false;
+  m.credit = false;
   m.limit = false;
   try {
     const user = global.db.data.users[m.sender];
@@ -144,6 +144,7 @@ try {
           coal: 0,
           coin: 0,
           common: 0,
+          credit: 10,
           crystal: 0,
           cumi: 0,
           cupon: 0,
@@ -158,7 +159,7 @@ try {
           emas: 0,
           emerald: 0,
           esteh: 0,
-          exp: 0,
+          exp: 10,
           expg: 0,
           exphero: 0,
           expired: 0,
@@ -471,7 +472,10 @@ try {
           wortel: 0,
           language: 'ar',
           gameglx: {},
+          messages: 1,
       };
+      // Increment total messages
+      user.messages++;
 
       // Initialize missing properties
       for (const key in defaults) {
