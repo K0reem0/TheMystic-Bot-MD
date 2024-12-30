@@ -13,7 +13,9 @@ const { getAggregateVotesInPollMessage, makeInMemoryStore, proto } = (await impo
 
 // Initialize in-memory store with logging
 const store = makeInMemoryStore({
-  logger: Pino().child({ level: 'fatal', stream: 'store' }),
+  logger: Pino().child({
+    level: 'fatal',
+    stream: 'store',
 });
 
 // Helper functions
@@ -27,20 +29,12 @@ let mconn;
  * @param {import("baileys").BaileysEventMap<unknown>['messages.upsert']} chatUpdate
  */
 export async function handler(chatUpdate) {
-  this.msgqueque = this.msgqueque || [];
-  this.uptime = this.uptime || Date.now();
-  
-  if (!chatUpdate) return;
-
-  try {
-    // Push messages and handle errors
-    this.pushMessage(chatUpdate.messages).catch(console.error);
-    let m = chatUpdate.messages[chatUpdate.messages.length - 1];
-    if (!m) return;
-
-    if (global.db.data == null) await global.loadDatabase();
-    if (global.chatgpt.data === null) await global.loadChatgptDB();
-  /* ------------------------------------------------*/
+  this.msgqueque = this.msgqueque || []
+  if (!chatUpdate) return
+  this.pushMessage(chatUpdate.messages).catch(console.error)
+  let m = chatUpdate.messages[chatUpdate.messages.length - 1]
+  if (!m) return
+  if (global.db.data == null) await global.loadDatabase()
   try {
     m = smsg(this, m) || m;
     if (!m) {
