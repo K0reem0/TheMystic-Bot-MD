@@ -432,6 +432,59 @@ try {
           soda: 0,
           sop: 0,
           spammer: 0,
+          potion: 10,
+          premium: false,
+          premiumTime: 0,
+          ramuan: 0,
+          ramuancentaurlast: 0,
+          ramuangriffinlast: 0,
+          ramuanherolast: 0,
+          ramuankucinglast: 0,
+          ramuankudalast: 0,
+          ramuankyubilast: 0,
+          ramuannagalast: 0,
+          ramuanphonixlast: 0,
+          ramuanrubahlast: 0,
+          ramuanserigalalast: 0,
+          registered: false,
+          reglast: 0,
+          regTime: -1,
+          rendang: 0,
+          rhinoceros: 0,
+          rhinocerosexp: 0,
+          rhinoceroslastfeed: 0,
+          rock: 0,
+          roket: 0,
+          role: 'Novato',
+          roti: 0,
+          rtrofi: 'bronce',
+          rubah: 0,
+          rubahlastclaim: 0,
+          rumahsakit: 0,
+          sampah: 0,
+          sand: 0,
+          sapi: 0,
+          sapir: 0,
+          seedbayam: 0,
+          seedbrokoli: 0,
+          seedjagung: 0,
+          seedkangkung: 0,
+          seedkentang: 0,
+          seedkubis: 0,
+          seedlabu: 0,
+          seedtomat: 0,
+          seedwortel: 0,
+          semangka: 0,
+          serigala: 0,
+          serigalalastclaim: 0,
+          sewa: false,
+          shield: 0,
+          skill: '',
+          skillexp: 0,
+          snlast: 0,
+          soda: 0,
+          sop: 0,
+          spammer: 0,
           spinlast: 0,
           ssapi: 0,
           stamina: 100,
@@ -470,17 +523,12 @@ try {
           wolflastfeed: 0,
           wood: 0,
           wortel: 0,
-          language: 'ar',
+          language: 'es',
           gameglx: {},
-          messages: 1,
-      };
-      // Increment total messages
-      user.messages++;
-
-      // Initialize missing properties
-      for (const key in defaults) {
-        if (user[key] === undefined || !user.hasOwnProperty(key)) {
-          user[key] = defaults[key];
+        }
+      for (const dicks in dick) {
+        if (user[dicks] === undefined || !user.hasOwnProperty(dicks)) {
+          user[dicks] = dick[dicks] // god pls forgive me
         }
       }}
       const akinator = global.db.data.users[m.sender].akinator;
