@@ -350,6 +350,7 @@ export async function handler(chatUpdate) {
           makananserigala: 0,
           mana: 20,
           mangga: 0,
+          messages = 0,
           misi: '',
           money: 15,
           monyet: 0,
@@ -479,7 +480,11 @@ export async function handler(chatUpdate) {
         if (user[dicks] === undefined || !user.hasOwnProperty(dicks)) {
           user[dicks] = dick[dicks] // god pls forgive me
         }
-      }}
+      }
+
+  // Increment the message count
+  user.messages += 1;
+      }
       const akinator = global.db.data.users[m.sender].akinator;
       if (typeof akinator !== 'object') {
         global.db.data.users[m.sender].akinator = {};
