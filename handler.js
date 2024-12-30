@@ -479,11 +479,11 @@ export async function handler(chatUpdate) {
         }
       for (const dicks in dick) {
         if (user[dicks] === undefined || !user.hasOwnProperty(dicks)) {
-          user[dicks] = dick[dicks] // god pls forgive me
+            user[dicks] = dick[dicks]; // Initialize missing properties
         }
-      }
+    }
 
-  // Increment the messages count
+    // Increment the messages count
     user.messages += 1;
 
     // Save back to the database
