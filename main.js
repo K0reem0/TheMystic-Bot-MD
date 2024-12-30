@@ -432,25 +432,34 @@ try {
 
   // Add the message counting logic
   conn.ev.on('messages.upsert', async (message) => {
-    try {
-      const msg = message.messages[0];
-      const userId = msg.key.participant || msg.key.remoteJid;
-      const users = global.db.data.users;
+  try {
+    const msg = message.messages[0];
+    const userId = msg.key.participant || msg.key.remoteJid;
+    const users = global.db.data.users;
 
-      if (!users[userId]) {
-        // Initialize user data if not present
-        users[userId] = { totalMessages: 0 };
-      }
+    // Log user ID and message details for debugging
+    console.log('User ID:', userId);
+    console.log('Message Event:', message);
 
-      // Increment the totalMessages counter
-      users[userId].totalMessages = (users[userId].totalMessages || 0) + 1;
-
-      console.log(`User ${userId} has now sent ${users[userId].totalMessages} messages.`);
-    } catch (e) {
-      console.error('Error updating message count:', e);
+    // Ensure users object exists
+    if (!users[userId]) {
+      users[userId] = { totalMessages: 0 };
+      console.log(`User ${userId} initialized.`);
     }
-  });
 
+    // Increment totalMessages
+    console.log(`Before Increment: ${users[userId]?.totalMessages}`);
+    users[userId].totalMessages = (users[userId].totalMessages || 0) + 1;
+    console.log(`After Increment: ${users[userId].totalMessages}`);
+
+    // Save database if needed (implement global.saveDatabase if necessary)
+    if (typeof global.saveDatabase === 'function') {
+      global.saveDatabase();
+    }
+  } catch (e) {
+    console.error('Error updating message count:', e);
+  }
+});
   // Attach handler functions
   conn.handler = handler.handler.bind(global.conn);
   conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
