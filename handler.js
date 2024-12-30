@@ -26,47 +26,50 @@ const delay = (ms) => isNumber(ms) && new Promise((resolve) => setTimeout(functi
  */
 export async function handler(chatUpdate) {
   this.msgqueque = this.msgqueque || [];
-this.uptime = this.uptime || Date.now();
-if (!chatUpdate) {
-  return;
-}
-this.pushMessage(chatUpdate.messages).catch(console.error);
-let m = chatUpdate.messages[chatUpdate.messages.length - 1];
-if (!m) {
-  return;
-}
-if (global.db.data == null) await global.loadDatabase();
-/* Creditos a Otosaka (https://wa.me/51993966345) */
-
-if (global.chatgpt.data === null) await global.loadChatgptDB();
-
-/* ------------------------------------------------*/
-try {
-  m = smsg(this, m) || m;
+  this.uptime = this.uptime || Date.now();
+  if (!chatUpdate) {
+    return;
+  }
+  this.pushMessage(chatUpdate.messages).catch(console.error);
+  let m = chatUpdate.messages[chatUpdate.messages.length - 1];
   if (!m) {
     return;
   }
-  global.mconn = m;
-  mconn = m;
-  m.exp = 0;
-  m.credit = false;
-  m.limit = false;
+  if (global.db.data == null) await global.loadDatabase();
+  /* Creditos a Otosaka (https://wa.me/51993966345) */
+
+  if (global.chatgpt.data === null) await global.loadChatgptDB();
+
+  /* ------------------------------------------------*/
   try {
-    const user = global.db.data.users[m.sender];
-    /* Creditos a Otosaka (https://wa.me/51993966345) */
-
-    const chatgptUser = global.chatgpt.data.users[m.sender];
-    if (typeof chatgptUser !== 'object') {
-      global.chatgpt.data.users[m.sender] = [];
+    m = smsg(this, m) || m;
+    if (!m) {
+      return;
     }
+    global.mconn = m
+    mconn = m
+    m.exp = 0;
+    m.money = false;
+    m.limit = false;
+    try {
+      // TODO: use loop to insert data instead of this
+      const user = global.db.data.users[m.sender];
+      /* Creditos a Otosaka (https://wa.me/51993966345) */
 
-    /* ------------------------------------------------*/
-    if (typeof user !== 'object') {
-      global.db.data.users[m.sender] = {};
-    }
-    if (user) {
-      // Define default user properties
-      const defaults = {
+      const chatgptUser = global.chatgpt.data.users[m.sender];
+      if (typeof chatgptUser !== 'object') {
+        global.chatgpt.data.users[m.sender] = [];
+      }
+
+      /* ------------------------------------------------*/
+      if (typeof user !== 'object') {
+        global.db.data.users[m.sender] = {};
+      }
+      if (user) {
+        // im gona cook this
+        // why the fuck nobody put the code like this in 3 years??????
+        // credit to mystic or skidy89
+        const dick = {
           afk: -1,
           wait: 0,
           afkReason: '',
@@ -144,7 +147,6 @@ try {
           coal: 0,
           coin: 0,
           common: 0,
-          credit: 10,
           crystal: 0,
           cumi: 0,
           cupon: 0,
@@ -159,7 +161,7 @@ try {
           emas: 0,
           emerald: 0,
           esteh: 0,
-          exp: 10,
+          exp: 0,
           expg: 0,
           exphero: 0,
           expired: 0,
@@ -379,59 +381,6 @@ try {
           pillhero: 0,
           pisang: 0,
           pointxp: 0,
-          potion: 10,
-          premium: false,
-          premiumTime: 0,
-          ramuan: 0,
-          ramuancentaurlast: 0,
-          ramuangriffinlast: 0,
-          ramuanherolast: 0,
-          ramuankucinglast: 0,
-          ramuankudalast: 0,
-          ramuankyubilast: 0,
-          ramuannagalast: 0,
-          ramuanphonixlast: 0,
-          ramuanrubahlast: 0,
-          ramuanserigalalast: 0,
-          registered: false,
-          reglast: 0,
-          regTime: -1,
-          rendang: 0,
-          rhinoceros: 0,
-          rhinocerosexp: 0,
-          rhinoceroslastfeed: 0,
-          rock: 0,
-          roket: 0,
-          role: 'Novato',
-          roti: 0,
-          rtrofi: 'bronce',
-          rubah: 0,
-          rubahlastclaim: 0,
-          rumahsakit: 0,
-          sampah: 0,
-          sand: 0,
-          sapi: 0,
-          sapir: 0,
-          seedbayam: 0,
-          seedbrokoli: 0,
-          seedjagung: 0,
-          seedkangkung: 0,
-          seedkentang: 0,
-          seedkubis: 0,
-          seedlabu: 0,
-          seedtomat: 0,
-          seedwortel: 0,
-          semangka: 0,
-          serigala: 0,
-          serigalalastclaim: 0,
-          sewa: false,
-          shield: 0,
-          skill: '',
-          skillexp: 0,
-          snlast: 0,
-          soda: 0,
-          sop: 0,
-          spammer: 0,
           potion: 10,
           premium: false,
           premiumTime: 0,
