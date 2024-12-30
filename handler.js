@@ -350,7 +350,7 @@ export async function handler(chatUpdate) {
           makananserigala: 0,
           mana: 20,
           mangga: 0,
-          messages = 0,
+          messages: 0,
           misi: '',
           money: 15,
           monyet: 0,
