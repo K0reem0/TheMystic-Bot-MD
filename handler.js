@@ -26,51 +26,48 @@ const delay = (ms) => isNumber(ms) && new Promise((resolve) => setTimeout(functi
  */
 export async function handler(chatUpdate) {
   this.msgqueque = this.msgqueque || [];
-  this.uptime = this.uptime || Date.now();
-  if (!chatUpdate) {
-    return;
-  }
-  this.pushMessage(chatUpdate.messages).catch(console.error);
-  let m = chatUpdate.messages[chatUpdate.messages.length - 1];
+this.uptime = this.uptime || Date.now();
+if (!chatUpdate) {
+  return;
+}
+this.pushMessage(chatUpdate.messages).catch(console.error);
+let m = chatUpdate.messages[chatUpdate.messages.length - 1];
+if (!m) {
+  return;
+}
+if (global.db.data == null) await global.loadDatabase();
+/* Creditos a Otosaka (https://wa.me/51993966345) */
+
+if (global.chatgpt.data === null) await global.loadChatgptDB();
+
+/* ------------------------------------------------*/
+try {
+  m = smsg(this, m) || m;
   if (!m) {
     return;
   }
-  if (global.db.data == null) await global.loadDatabase();
-  /* Creditos a Otosaka (https://wa.me/51993966345) */
-
-  if (global.chatgpt.data === null) await global.loadChatgptDB();
-
-  /* ------------------------------------------------*/
+  global.mconn = m;
+  mconn = m;
+  m.exp = 0;
+  m.money = false;
+  m.limit = false;
+  m.messages = 1;
   try {
-    m = smsg(this, m) || m;
-    if (!m) {
-      return;
+    const user = global.db.data.users[m.sender];
+    /* Creditos a Otosaka (https://wa.me/51993966345) */
+
+    const chatgptUser = global.chatgpt.data.users[m.sender];
+    if (typeof chatgptUser !== 'object') {
+      global.chatgpt.data.users[m.sender] = [];
     }
-    global.mconn = m
-    mconn = m
-    m.exp = 0;
-    m.money = false;
-    m.limit = false;
-    m.messages = 1;
-    try {
-      // TODO: use loop to insert data instead of this
-      const user = global.db.data.users[m.sender];
-      /* Creditos a Otosaka (https://wa.me/51993966345) */
 
-      const chatgptUser = global.chatgpt.data.users[m.sender];
-      if (typeof chatgptUser !== 'object') {
-        global.chatgpt.data.users[m.sender] = [];
-      }
-
-      /* ------------------------------------------------*/
-      if (typeof user !== 'object') {
-        global.db.data.users[m.sender] = {};
-      }
-      if (user) {
-        // im gona cook this
-        // why the fuck nobody put the code like this in 3 years??????
-        // credit to mystic or skidy89
-        const dick = {
+    /* ------------------------------------------------*/
+    if (typeof user !== 'object') {
+      global.db.data.users[m.sender] = {};
+    }
+    if (user) {
+      // Define default user properties
+      const defaults = {
           afk: -1,
           wait: 0,
           afkReason: '',
@@ -351,7 +348,6 @@ export async function handler(chatUpdate) {
           makananserigala: 0,
           mana: 20,
           mangga: 0,
-          messages: 1,
           misi: '',
           money: 15,
           monyet: 0,
@@ -476,21 +472,35 @@ export async function handler(chatUpdate) {
           wortel: 0,
           language: 'ar',
           gameglx: {},
-        }
-      for (const dicks in dick) {
-        if (user[dicks] === undefined || !user.hasOwnProperty(dicks)) {
-            user[dicks] = dick[dicks]; // Initialize missing properties
-        }
-    }
+          messages: 1,
+          dailyMessages: 0, // Daily message counter
+          lastMessageDate: null, // Date of the last message
+      };
 
-    // Increment the messages count
-    user.messages += 1;
-
-    // Save back to the database
-    global.db.data.users[m.sender] = user;
-    
-    console.log(user.messages);  // Debugging: Check the message count
+      // Initialize missing properties
+      for (const key in defaults) {
+        if (user[key] === undefined || !user.hasOwnProperty(key)) {
+          user[key] = defaults[key];
+        }
       }
+
+      // Check if the counter needs to reset
+      const currentDate = new Date().toDateString(); // Current date as a string
+      if (user.lastMessageDate !== currentDate) {
+        user.dailyMessages = 0; // Reset daily counter
+        user.lastMessageDate = currentDate; // Update to today's date
+      }
+      // Increment the messages count
+      user.messages += 1;
+      // Increment the daily message counter
+      user.dailyMessages += 1;
+    }
+  } catch (error) {
+    console.error(`Error updating user data: ${error.message}`);
+  }
+} catch (error) {
+  console.error(`Error processing message: ${error.message}`);
+}
       const akinator = global.db.data.users[m.sender].akinator;
       if (typeof akinator !== 'object') {
         global.db.data.users[m.sender].akinator = {};
