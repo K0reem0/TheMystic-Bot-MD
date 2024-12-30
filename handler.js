@@ -7,39 +7,39 @@ import { unwatchFile, watchFile } from 'fs';
 import fs from 'fs';
 import chalk from 'chalk';
 import mddd5 from 'md5';
-import ws from 'ws';
+import Pino from 'pino';
+
+const { getAggregateVotesInPollMessage, makeInMemoryStore, proto } = (await import("baileys")).default;
+
+// Initialize in-memory store with logging
+const store = makeInMemoryStore({
+  logger: Pino().child({ level: 'fatal', stream: 'store' }),
+});
+
+// Helper functions
+const isNumber = (x) => typeof x === 'number' && !isNaN(x);
+const delay = (ms) => isNumber(ms) && new Promise((resolve) => setTimeout(() => resolve(), ms));
+
 let mconn;
 
 /**
- * @type {import("baileys")}
- */
-const { proto } = (await import("baileys")).default;
-const isNumber = (x) => typeof x === 'number' && !isNaN(x);
-const delay = (ms) => isNumber(ms) && new Promise((resolve) => setTimeout(function () {
-  clearTimeout(this);
-  resolve();
-}, ms));
-
-/**
  * Handle messages upsert
- * @param {import("baileys").BaileysEventMap<unknown>['messages.upsert']} groupsUpdate
+ * @param {import("baileys").BaileysEventMap<unknown>['messages.upsert']} chatUpdate
  */
 export async function handler(chatUpdate) {
   this.msgqueque = this.msgqueque || [];
   this.uptime = this.uptime || Date.now();
-  if (!chatUpdate) {
-    return;
-  }
-  this.pushMessage(chatUpdate.messages).catch(console.error);
-  let m = chatUpdate.messages[chatUpdate.messages.length - 1];
-  if (!m) {
-    return;
-  }
-  if (global.db.data == null) await global.loadDatabase();
-  /* Creditos a Otosaka (https://wa.me/51993966345) */
+  
+  if (!chatUpdate) return;
 
-  if (global.chatgpt.data === null) await global.loadChatgptDB();
+  try {
+    // Push messages and handle errors
+    this.pushMessage(chatUpdate.messages).catch(console.error);
+    let m = chatUpdate.messages[chatUpdate.messages.length - 1];
+    if (!m) return;
 
+    if (global.db.data == null) await global.loadDatabase();
+    if (global.chatgpt.data === null) await global.loadChatgptDB();
   /* ------------------------------------------------*/
   try {
     m = smsg(this, m) || m;
