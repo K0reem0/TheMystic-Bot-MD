@@ -22,10 +22,7 @@ const handler = async (m, { conn, text }) => {
         return conn.sendMessage(m.chat, { text: `User @${userNumber} does not exist in the database.`, mentions: [user] }, { quoted: m });
     }
 
-    global.global.db.data.users[user].exp = 0;
-    global.global.db.data.users[user].messages = 1;
-    global.global.db.data.users[user].level = 0;
-    global.global.db.data.users[user].role = 'Novato';
+    global.global.db.data.users[user].exp = 10;
 
     conn.sendMessage(m.chat, { text: `Experience and messages for user @${userNumber} have been reset.`, mentions: [user] }, { quoted: m });
 };
