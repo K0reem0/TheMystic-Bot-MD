@@ -43,6 +43,7 @@ export async function handler(chatUpdate) {
     global.mconn = m
     mconn = m
     m.exp = 0;
+    m.messages = 1;
     m.money = false;
     m.limit = false;
     try {
