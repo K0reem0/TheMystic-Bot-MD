@@ -1,49 +1,32 @@
 let handler = async (m, { conn }) => {
-  const user = global.db.data.users[m.sender];
+  const users = global.db.data.users;
 
-  if (!user) {
-    throw `✳️ المستخدم غير موجود في قاعدة البيانات`;
+  // Check if users database exists and is not empty
+  if (!users || Object.keys(users).length === 0) {
+    throw `🚫 لا توجد بيانات مستخدمين متوفرة.`;
   }
 
-  // Initialize fields if missing
-  if (user.totalMessages === undefined || user.lastMessageReset === undefined) {
-    user.totalMessages = 0;
-    user.dailyMessages = 0;
-    user.lastMessageReset = new Date().toDateString(); // Save as YYYY-MM-DD string
-  }
+  // Calculate total messages for each user
+  let leaderboard = Object.entries(users)
+    .map(([id, user]) => ({
+      id,
+      totalMessages: user.totalMessages || 0,
+    }))
+    .sort((a, b) => b.totalMessages - a.totalMessages) // Sort by total messages, descending
+    .slice(0, 10); // Get the top 10 users
 
-  // Get the current date and time
-  const now = new Date();
-  const currentDate = now.toDateString(); // Current date as YYYY-MM-DD
-  const currentHour = now.getHours();
-
-  // Reset the daily message count if the date has changed
-  if (user.lastMessageReset !== currentDate) {
-    user.dailyMessages = 0; // Reset daily messages
-    user.lastMessageReset = currentDate; // Update the last reset date
-  }
-
-  // Increment the total messages (global count)
-  user.totalMessages += 1;
-
-  // Increment daily messages only if within the specified range (12:00 PM to 11:59 PM)
-  if (currentHour >= 12) {
-    user.dailyMessages += 1;
-  }
-
-  // Construct the response
-  const response = `
-*✉️ الرسائل اليومية من 12:00 ظهراً :* ${user.dailyMessages}
-*📅 تاريخ اليوم :* ${currentDate}
-*🔢 إجمالي الرسائل المرسلة :* ${user.totalMessages}
-  `;
+  // Construct the leaderboard message
+  let response = `🏆 *لوحة الصدارة للرسائل (إجمالي):*\n\n`;
+  leaderboard.forEach((user, index) => {
+    response += `${index + 1}. ${user.id} - *${user.totalMessages}* رسائل\n`;
+  });
 
   // Send the response
   m.reply(response);
 };
 
-handler.help = ['dailymsg'];
+handler.help = ['msgboard'];
 handler.tags = ['statistics'];
-handler.command = ['dailymsg', 'تفاعلي'];
+handler.command = ['msgboard', 'لوحة_الرسائل'];
 
 export default handler;
