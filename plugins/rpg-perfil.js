@@ -7,7 +7,7 @@ let handler = async (m, { conn }) => {
 
   if (!(who in global.db.data.users)) throw `✳️ اهذا المستخدم غير موجود ف قاعدة بياناتي`;
 
-  let pp = await conn.profilePictureUrl(who, 'image').catch(_ => './src/assets/images/menu/main/galaxyMenu.png');
+  let pp = await conn.profilePictureUrl(who, 'image').catch(_ => './src/avatar_contact.png');
   let user = global.db.data.users[who];
   let about = (await conn.fetchStatus(who).catch(console.error) || {}).status || ''
   let { name, exp, credit, lastclaim, registered, regTime, age, level, role, wealth, warn, messages } = global.db.data.users[who];
