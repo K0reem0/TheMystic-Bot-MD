@@ -474,12 +474,22 @@ export async function handler(chatUpdate) {
           wortel: 0,
           language: 'es',
           gameglx: {},
+          messages: 1,
         }
       for (const dicks in dick) {
         if (user[dicks] === undefined || !user.hasOwnProperty(dicks)) {
           user[dicks] = dick[dicks] // god pls forgive me
         }
-      }}
+      }
+
+    // Increment the messages count
+    user.messages += 1;
+
+    // Save back to the database
+    global.db.data.users[m.sender] = user;
+    
+    console.log(user.messages);  // Debugging: Check the message count
+      }
       const akinator = global.db.data.users[m.sender].akinator;
       if (typeof akinator !== 'object') {
         global.db.data.users[m.sender].akinator = {};
