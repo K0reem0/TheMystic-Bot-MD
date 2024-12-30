@@ -4,7 +4,7 @@ import Canvacord from 'canvacord'
 export async function before(m, { conn }) {
     let user = global.db.data.users[m.sender]
     let name = conn.getName(m.sender)
-    let pp = await conn.profilePictureUrl(m.sender, 'image').catch(_ => './src/assets/images/menu/main/galaxyMenu.png')
+    let pp = await conn.profilePictureUrl(m.sender, 'image').catch(_ => './src/avatar_contact.png')
 
     // Store the current level
     let before = user.level * 1
@@ -36,7 +36,7 @@ export async function before(m, { conn }) {
             .setLevelColor('#FFFFFF', '#FFFFFF')
             .setOverlay('#000000')
             .setUsername(name)
-            .setBackground('IMAGE', './Assets/rankbg.jpg')
+            .setBackground('IMAGE', './src/assets/rankbg.jpg')
             .setRank(user.level, 'LEVEL', false)
             .renderEmojis(true)
             .build()
