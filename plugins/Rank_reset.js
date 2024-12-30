@@ -23,6 +23,7 @@ const handler = async (m, { conn, text }) => {
     }
 
     global.global.db.data.users[user].exp = 10;
+    global.global.db.data.users[user].messages = 1;
 
     conn.sendMessage(m.chat, { text: `Experience and messages for user @${userNumber} have been reset.`, mentions: [user] }, { quoted: m });
 };
