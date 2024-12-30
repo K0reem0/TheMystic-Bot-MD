@@ -55,7 +55,6 @@ let handler = async (m, { conn }) => {
   try {
     // Send the rank card image along with the profile details
     conn.sendFile(m.chat, card, 'rank.jpg', str, m, false, { mentions: [sender] });
-    m.react('✅'); // React to indicate success
   } catch (error) {
     console.error(`Error sending profile card: ${error.message}`);
   }
