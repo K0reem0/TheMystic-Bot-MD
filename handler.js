@@ -51,7 +51,6 @@ try {
   m.exp = 0;
   m.money = false;
   m.limit = false;
-  m.messages = 1;
   try {
     const user = global.db.data.users[m.sender];
     /* Creditos a Otosaka (https://wa.me/51993966345) */
@@ -472,9 +471,6 @@ try {
           wortel: 0,
           language: 'ar',
           gameglx: {},
-          messages: 1,
-          dailyMessages: 0, // Daily message counter
-          lastMessageDate: null, // Date of the last message
       };
 
       // Initialize missing properties
@@ -482,25 +478,7 @@ try {
         if (user[key] === undefined || !user.hasOwnProperty(key)) {
           user[key] = defaults[key];
         }
-      }
-
-      // Check if the counter needs to reset
-      const currentDate = new Date().toDateString(); // Current date as a string
-      if (user.lastMessageDate !== currentDate) {
-        user.dailyMessages = 0; // Reset daily counter
-        user.lastMessageDate = currentDate; // Update to today's date
-      }
-      // Increment the messages count
-      user.messages += 1;
-      // Increment the daily message counter
-      user.dailyMessages += 1;
-    }
-  } catch (error) {
-    console.error(`Error updating user data: ${error.message}`);
-  }
-} catch (error) {
-  console.error(`Error processing message: ${error.message}`);
-}
+      }}
       const akinator = global.db.data.users[m.sender].akinator;
       if (typeof akinator !== 'object') {
         global.db.data.users[m.sender].akinator = {};
