@@ -395,22 +395,21 @@ global.reloadHandler = async function(restatConn) {
   
 try { 
 const Handler = await import(`./handler.js?update=${Date.now()}`).catch(console.error);
-if (Object.keys(Handler || {}).length) handler = Handler;
-
-try {
+    if (Object.keys(Handler || {}).length) handler = Handler;
+  } catch (e) {
+    console.error(e);
+  }
   if (restatConn) {
     const oldChats = global.conn.chats;
     try {
       global.conn.ws.close();
-    } catch {}
+    } catch { }
     conn.ev.removeAllListeners();
-    global.conn = makeWASocket(connectionOptions, { chats: oldChats });
+    global.conn = makeWASocket(connectionOptions, {chats: oldChats});
     store?.bind(conn);
     isInit = true;
   }
-
   if (!isInit) {
-    // Remove existing listeners to prevent duplication
     conn.ev.off('messages.upsert', conn.handler);
     conn.ev.off('group-participants.update', conn.participantsUpdate);
     conn.ev.off('groups.update', conn.groupsUpdate);
@@ -430,36 +429,7 @@ try {
   conn.sIcon = '*[ ℹ️ ] تم تغيير صورة الملف الشخصي للمجموعة.*';
   conn.sRevoke = '*[ ℹ️ ] تم إعادة تعيين رابط الدعوة للمجموعة.*';
 
-  // Add the message counting logic
-  conn.ev.on('messages.upsert', async (message) => {
-  try {
-    const msg = message.messages[0];
-    const userId = msg.key.remoteJid || msg.key.participant || msg.pushName; // Identify the sender
-    const users = global.db.data.users;
-
-    // Ensure the users database exists and initialize the user if not present
-    if (!users[userId]) {
-      users[userId] = { totalMessages: 0 }; // Initialize the user data
-      console.log(`Initialized user ${userId}`);
-    }
-
-    // Increment the totalMessages count
-    users[userId].totalMessages = (users[userId].totalMessages || 0) + 1;
-
-    // Debugging logs
-    console.log(`Message from ${userId}:`);
-    console.log(`Total messages for ${userId}: ${users[userId].totalMessages}`);
-
-    // Save the database if needed
-    if (typeof global.saveDatabase === 'function') {
-      global.saveDatabase();
-    }
-  } catch (error) {
-    console.error('Error processing message:', error);
-  }
-});
-  // Attach handler functions
-  conn.handler = handler.handler.bind(global.conn);
+conn.handler = handler.handler.bind(global.conn);
   conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
   conn.groupsUpdate = handler.groupsUpdate.bind(global.conn);
   conn.onDelete = handler.deleteUpdate.bind(global.conn);
@@ -467,7 +437,14 @@ try {
   conn.connectionUpdate = connectionUpdate.bind(global.conn);
   conn.credsUpdate = saveCreds.bind(global.conn, true);
 
-  // Add new listeners
+  const currentDateTime = new Date();
+  const messageDateTime = new Date(conn.ev);
+  if (currentDateTime >= messageDateTime) {
+    const chats = Object.entries(conn.chats).filter(([jid, chat]) => !jid.endsWith('@g.us') && chat.isChats).map((v) => v[0]);
+  } else {
+    const chats = Object.entries(conn.chats).filter(([jid, chat]) => !jid.endsWith('@g.us') && chat.isChats).map((v) => v[0]);
+  }
+
   conn.ev.on('messages.upsert', conn.handler);
   conn.ev.on('group-participants.update', conn.participantsUpdate);
   conn.ev.on('groups.update', conn.groupsUpdate);
@@ -475,13 +452,9 @@ try {
   conn.ev.on('call', conn.onCall);
   conn.ev.on('connection.update', conn.connectionUpdate);
   conn.ev.on('creds.update', conn.credsUpdate);
-
-  // Ensure `isInit` is updated correctly
   isInit = false;
   return true;
-} catch (e) {
-  console.error(e);
-}
+};
 
 const pluginFolder = global.__dirname(join(__dirname, './plugins/index'));
 const pluginFilter = (filename) => /\.js$/.test(filename);
