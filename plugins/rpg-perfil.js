@@ -10,7 +10,7 @@ let handler = async (m, { conn }) => {
   let pp = await conn.profilePictureUrl(who, 'image').catch(_ => './src/avatar_contact.png');
   let user = global.db.data.users[who];
   let about = (await conn.fetchStatus(who).catch(console.error) || {}).status || ''
-  let { name, exp, credit, lastclaim, registered, regTime, age, level, role, wealth, warn, totalMessages } = global.db.data.users[who];
+  let { name, exp, credit, lastclaim, registered, regTime, age, level, role, wealth, warn, messages } = global.db.data.users[who];
   let { min, xp, max } = xpRange(user.level, global.multiplier);
   let username = conn.getName(who);
   let math = max - xp;
@@ -43,7 +43,7 @@ let handler = async (m, { conn }) => {
   *⚠️ الأنذارات:* ${warn}\n
   *💰 الرصيد :* ${credit} *بيلي*\n
   *⬆️ الخبره :* ${crxp} / ${requiredXpToLevelUp}\n
-  *✉ الرسائل :* ${totalMessages}\n
+  *✉ الرسائل :* ${messages}\n
   *🏆 التصنيف :* ${role}\n
   *📇 الحساب :* ${registered ? 'مسجل': 'غير مسجل'}\n
   *⭐️ العضوية :*  ${prem ? 'مميز' : 'عضو'}\n
@@ -52,7 +52,6 @@ let handler = async (m, { conn }) => {
 
   try {
     conn.sendFile(m.chat, card, 'rank.jpg', str, m, false, { mentions: [who] });
-    m.react('✅');
   } catch (error) {
     console.error(error);
   }}
