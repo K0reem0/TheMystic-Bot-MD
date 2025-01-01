@@ -16,8 +16,6 @@ import {format} from 'util';
 import pino from 'pino';
 import Pino from 'pino';
 import {Boom} from '@hapi/boom';
-import CloudDBAdapter from './src/libraries/cloudDBAdapter.js'
-import { MongoDB } from './src/libraries/mongoDB.js'
 import {makeWASocket, protoType, serialize} from './src/libraries/simple.js';
 import {Low, JSONFile} from 'lowdb';
 import store from './src/libraries/store.js';
@@ -26,9 +24,6 @@ import readline from 'readline';
 import NodeCache from 'node-cache';
 const {chain} = lodash;
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_USERNAME = process.env.GITHUB_USERNAME;
-const GITHUB_REPO = process.env.GITHUB_REPO;
 let stopped = 'close';  
 protoType();
 serialize();
@@ -50,28 +45,18 @@ global.videoListXXX = [];
 const __dirname = global.__dirname(import.meta.url);
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse());
 global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-.@').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']');
-global.opts['db'] = process.env.DATABASE_URL;
+global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`));
 
-global.db = new Low(
-  /https?:\/\//.test(opts['db'] || '')
-    ? new CloudDBAdapter(opts['db'])
-    : /mongodb(\+srv)?:\/\//i.test(opts['db'])
-      ? new MongoDB(opts['db'])
-      : new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`)
-);
-
-global.DATABASE = global.db;
 
 global.loadDatabase = async function loadDatabase() {
-  if (global.db.READ)
-    return new Promise(resolve => {
-      const interval = setInterval(async function () {
-        if (!global.db.READ) {
-          clearInterval(interval);
-          resolve(global.db.data == null ? global.loadDatabase() : global.db.data);
-        }
-      }, 1 * 1000);
-    });
+  if (global.db.READ) {
+    return new Promise((resolve) => setInterval(async function() {
+      if (!global.db.READ) {
+        clearInterval(this);
+        resolve(global.db.data == null ? global.loadDatabase() : global.db.data);
+      }
+    }, 1 * 1000));
+  }
   if (global.db.data !== null) return;
   global.db.READ = true;
   await global.db.read().catch(console.error);
@@ -393,8 +378,9 @@ let isInit = true;
 let handler = await import('./handler.js');
 global.reloadHandler = async function(restatConn) {
   
-try { 
-const Handler = await import(`./handler.js?update=${Date.now()}`).catch(console.error);
+  try {
+   
+    const Handler = await import(`./handler.js?update=${Date.now()}`).catch(console.error);
     if (Object.keys(Handler || {}).length) handler = Handler;
   } catch (e) {
     console.error(e);
@@ -419,17 +405,18 @@ const Handler = await import(`./handler.js?update=${Date.now()}`).catch(console.
     conn.ev.off('creds.update', conn.credsUpdate);
   }
 
-  // Define welcome message behavior
-  conn.welcome = `┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\nمرحباً بك في نقابة اجارس\n⊰🌨️⊱\n⚜︎ يسرنا تواجدك بيننا ⚜︎\nوانضمامك معنا وبكل ما تحمله معاني الشوق\n⚜︎ نتلهف لقراءة مشاركاتك ⚜︎\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n*✧ ♟️┋اللقب • 〘@name〙*\n*✧ 📧┋المنشن • 〘@user〙*\n*✧ 🧑🏻‍💻┋المسؤول  • 〘@admin〙*\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n◈ ⚜︎ قروب الإعلانات 🗞️ ↯↯\n〘 https://chat.whatsapp.com/LLucZEBpwec2n6PvwcRgHD 〙\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n*⚜︎ 📯 ┃ادارة•* ﹝𝑨𝒋𝒂𝒓𝒔﹞\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏`;
-  conn.bye = '👋 إلى اللقاء! \n@user';
-  conn.spromote = '*[ ℹ️ ] @user تم ترقية إلى مشرف.*';
-  conn.sdemote = '*[ ℹ️ ] @user تم خفض رتبتك من المشرف.*';
-  conn.sDesc = '*[ ℹ️ ] تم تعديل وصف المجموعة.*';
-  conn.sSubject = '*[ ℹ️ ] تم تغيير اسم المجموعة.*';
-  conn.sIcon = '*[ ℹ️ ] تم تغيير صورة الملف الشخصي للمجموعة.*';
-  conn.sRevoke = '*[ ℹ️ ] تم إعادة تعيين رابط الدعوة للمجموعة.*';
+  // Para cambiar estos mensajes, solo los archivos en la carpeta de language, 
+  // busque la clave "handler" dentro del json y cámbiela si es necesario
+  conn.welcome = '👋 ¡Bienvenido/a!\n@user';
+  conn.bye = '👋 ¡Hasta luego!\n@user';
+  conn.spromote = '*[ ℹ️ ] @user Fue promovido a administrador.*';
+  conn.sdemote = '*[ ℹ️ ] @user Fue degradado de administrador.*';
+  conn.sDesc = '*[ ℹ️ ] La descripción del grupo ha sido modificada.*';
+  conn.sSubject = '*[ ℹ️ ] El nombre del grupo ha sido modificado.*';
+  conn.sIcon = '*[ ℹ️ ] Se ha cambiado la foto de perfil del grupo.*';
+  conn.sRevoke = '*[ ℹ️ ] El enlace de invitación al grupo ha sido restablecido.*';
 
-conn.handler = handler.handler.bind(global.conn);
+  conn.handler = handler.handler.bind(global.conn);
   conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
   conn.groupsUpdate = handler.groupsUpdate.bind(global.conn);
   conn.onDelete = handler.deleteUpdate.bind(global.conn);
@@ -455,6 +442,7 @@ conn.handler = handler.handler.bind(global.conn);
   isInit = false;
   return true;
 };
+
 
 const pluginFolder = global.__dirname(join(__dirname, './plugins/index'));
 const pluginFilter = (filename) => /\.js$/.test(filename);
