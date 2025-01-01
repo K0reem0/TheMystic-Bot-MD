@@ -16,45 +16,6 @@ import {format} from 'util';
 import pino from 'pino';
 import Pino from 'pino';
 import {Boom} from '@hapi/boom';
-import {makeWASocket, protoType, serialize} from './src/libraries/simple.js';
-import {Low, JSONFile} from 'lowdb';
-import store from './src/libraries/store.js';
-const {DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, PHONENUMBER_MCC} = await import("baileys");
-import readline from 'readline';
-import NodeCache from 'node-cache';
-const {chain} = lodash;
-const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
-let stopped = 'close';  
-protoType();
-serialize();
-const msgRetryCounterMap = new Map();
-const msgRetryCounterCache = new NodeCache({ stdTTL: 0, checkperiod: 0 });
-const userDevicesCache = new NodeCache({ stdTTL: 0, checkperiod: 0 });
-
-global.__filename = function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') {
-  return rmPrefix ? /file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL : pathToFileURL(pathURL).toString();
-}; global.__dirname = function dirname(pathURL) {
-  return path.dirname(global.__filename(pathURL, true));
-}; global.__require = function require(dir = import.meta.url) {
-  return createRequire(dir);
-"use strict";
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1'; 
-import './config.js';
-import './api.js';
-import {createRequire} from 'module';
-import path, {join} from 'path';
-import {fileURLToPath, pathToFileURL} from 'url';
-import {platform} from 'process';
-import {readdirSync, statSync, unlinkSync, existsSync, readFileSync, watch} from 'fs';
-import yargs from 'yargs';
-import {spawn} from 'child_process';
-import lodash from 'lodash';
-import chalk from 'chalk';
-import syntaxerror from 'syntax-error';
-import {format} from 'util';
-import pino from 'pino';
-import Pino from 'pino';
-import {Boom} from '@hapi/boom';
 import CloudDBAdapter from './src/libraries/cloudDBAdapter.js'
 import { MongoDB } from './src/libraries/mongoDB.js'
 import {makeWASocket, protoType, serialize} from './src/libraries/simple.js';
