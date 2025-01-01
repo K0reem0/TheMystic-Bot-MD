@@ -50,6 +50,7 @@ export async function handler(chatUpdate) {
     mconn = m
     m.exp = 0;
     m.messages = 1;
+    m.dailymessages = 1;
     m.money = false;
     m.credit = false;
     m.limit = false;
@@ -478,6 +479,7 @@ export async function handler(chatUpdate) {
           language: 'es',
           gameglx: {},
           messages: 1,
+          dailymessages: 1,
         }
       for (const dicks in dick) {
         if (user[dicks] === undefined || !user.hasOwnProperty(dicks)) {
@@ -487,6 +489,7 @@ export async function handler(chatUpdate) {
 
     // Increment the messages count
     user.messages += 1;
+    user.dailymessages += 1;
 
     // Save back to the database
     global.db.data.users[m.sender] = user;
