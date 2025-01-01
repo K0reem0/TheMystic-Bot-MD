@@ -51,6 +51,7 @@ export async function handler(chatUpdate) {
     m.exp = 0;
     m.messages = 1;
     m.money = false;
+    m.credit = false;
     m.limit = false;
     try {
       // TODO: use loop to insert data instead of this
@@ -148,6 +149,7 @@ export async function handler(chatUpdate) {
           coal: 0,
           coin: 0,
           common: 0,
+          credit: 100,
           crystal: 0,
           cumi: 0,
           cupon: 0,
