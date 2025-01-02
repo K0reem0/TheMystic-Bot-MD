@@ -22,13 +22,14 @@ const handler = async (m, { conn, text }) => {
         return conn.sendMessage(m.chat, { text: `User @${userNumber} does not exist in the database.`, mentions: [user] }, { quoted: m });
     }
 
-    global.global.db.data.users[user].exp = 10;
+    global.global.db.data.users[user].exp = 200;
     global.global.db.data.users[user].messages = 1;
+    global.global.db.data.users[user].level = 0;
 
     conn.sendMessage(m.chat, { text: `Experience and messages for user @${userNumber} have been reset.`, mentions: [user] }, { quoted: m });
 };
 
 handler.tags = ['owner'];
-handler.command = /(تصفير_رانك)$/i;
+handler.command = /(رانك_رست)$/i;
 handler.rowner = true;
 export default handler;
