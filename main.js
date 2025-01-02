@@ -422,7 +422,7 @@ global.reloadHandler = async function(restatConn) {
 
   // Para cambiar estos mensajes, solo los archivos en la carpeta de language, 
   // busque la clave "handler" dentro del json y cámbiela si es necesario
-  conn.welcome = `┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\nمرحباً بك في نقابة اجارس\n⊰🌨️⊱\n⚜︎ يسرنا تواجدك بيننا ⚜︎\nوانضمامك معنا وبكل ما تحمله معاني الشوق\n⚜︎ نتلهف لقراءة مشاركاتك ⚜︎\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n*✧ ♟️┋اللقب • 〘@name〙*\n*✧ 📧┋المنشن • 〘@user〙*\n*✧ 🧑🏻‍💻┋المسؤول  • 〘@admin〙*\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n◈ ⚜︎ قروب الإعلانات 🗞️ ↯↯\n〘 https://chat.whatsapp.com/LLucZEBpwec2n6PvwcRgHD 〙\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n*⚜︎ 📯 ┃ادارة•* ﹝𝑨𝒋𝒂𝒓𝒔﹞\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏`;
+  conn.welcome = `┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n\nمرحباً بك في نقابة اجارس ⊰🌨️⊱\n⚜︎ يسرنا تواجدك بيننا ⚜︎\nوانضمامك معنا وبكل ما تحمله معاني الشوق\n⚜︎ نتلهف لقراءة مشاركاتك ⚜︎\n\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n\n*✧ ♟️┋اللقب • 〘@name〙*\n\n*✧ 📧┋المنشن • 〘@user〙*\n\n*✧ 🧑🏻‍💻┋المسؤول  • 〘@admin〙*\n\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n\n◈ ⚜︎ قروب الإعلانات 🗞️ ↯↯\n\n〘 https://chat.whatsapp.com/LLucZEBpwec2n6PvwcRgHD 〙\n\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏\n\n*⚜︎ 📯 ┃ادارة•* ﹝𝑨𝒋𝒂𝒓𝒔﹞\n\n┓═━━━──┄⊹⊱ «◈» ⊰⊹┄──━━━═┏`;
   conn.bye = '👋 إلى اللقاء! \n@user';
   conn.spromote = '*[ ℹ️ ] @user تم ترقية إلى مشرف.*';
   conn.sdemote = '*[ ℹ️ ] @user تم خفض رتبتك من المشرف.*';
