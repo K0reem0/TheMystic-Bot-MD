@@ -163,7 +163,7 @@ handler.all = async function (m) {
     }
 
     // Provide a hint if the user has 4 attempts left
-    if (!game.hintGiven && game.wrongGuesses.length === 6) { // 4 attempts remaining
+    if (!game.hintGiven && game.wrongGuesses.length === 3) { // 4 attempts remaining
         game.hintGiven = true;
         this.reply(m.chat, `*تلميح: ${game.description}*`, m);
     }
