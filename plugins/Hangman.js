@@ -63,22 +63,6 @@ const HANGMANPICS = [
  / \\  |
       |
 =========`,
-    `
-  +---+
-  |   |
-  O   |
- /|\\  |
- / \\  |
-      |
-=========`,
-    `
-  +---+
-  |   |
-  O   |
- /|\\  |
- / \\  |
-      |
-=========`,
 ];
 
 // Fetch the Arabic words list from GitHub
@@ -98,11 +82,11 @@ let maxWrongGuesses = 10; // Number of stages in HANGMANPICS
 let games = {}; // Global game state storage
 
 let handler = async (m, { conn }) => {
-    let id = m.chat;
+    let id = `${m.chat}:${m.sender}`;
 
-    // Check if a game is already running in this chat
+    // Check if a game is already running for the current player
     if (id in games) {
-        conn.reply(m.chat, '*صبر ما تشوف فيه لعبة جارية ؟*', games[id].msg);
+        conn.reply(m.chat, 'لديك لعبة نشطة بالفعل! استمر باللعب.', m);
         return;
     }
 
@@ -133,6 +117,7 @@ let handler = async (m, { conn }) => {
                 delete games[id];
             }
         }, timeout),
+        player: m.sender // Store the player who started the game
     };
 
     // Determine the difficulty level based on the word length
@@ -144,17 +129,17 @@ let handler = async (m, { conn }) => {
 
 // Recognize user guesses
 handler.all = async function (m) {
-    let id = m.chat;
+    let id = `${m.chat}:${m.sender}`;
 
-    // Check if there's an active Hangman game in this chat
-    if (!(id in games)) return;
+    // Check if there's an active Hangman game for the current player
+    if (!(id in games)) return; // Ignore interactions from other users
 
     let game = games[id];
     let guess = m.text.trim().toLowerCase();
 
     // Validate input: single letter or surrender command
     if (!/^[a-z\u0600-\u06FF]$/.test(guess) && !/^(انسحب|surr?ender)$/i.test(guess)) {
-        return this.reply(m.chat, '*يرجى إدخال حرف واحد فقط اذا ماتبي تكمل اللعبة اكتب انسحب!*', m);
+        return; // Ignore invalid input silently
     }
 
     // Handle surrender
@@ -164,7 +149,7 @@ handler.all = async function (m) {
         return this.reply(m.chat, `*❃ ──────⊰ ❀ ⊱────── ❃*\n*استسلمت!*\nالكلمة كانت: *${game.word}*\n*❃ ──────⊰ ❀ ⊱────── ❃*`, m);
     }
 
-    // Process guess, allow repeated letters but don't block the user from guessing
+    // Process guess
     if (game.word.includes(guess)) {
         // Correct guess: update the word template
         for (let i = 0; i < game.word.length; i++) {
@@ -172,7 +157,9 @@ handler.all = async function (m) {
         }
     } else {
         // Wrong guess: add to wrong guesses
-        game.wrongGuesses.push(guess);
+        if (!game.wrongGuesses.includes(guess)) {
+            game.wrongGuesses.push(guess);
+        }
     }
 
     // Provide a hint if the user has 4 attempts left
