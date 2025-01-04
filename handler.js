@@ -1095,9 +1095,9 @@ const chat = global.db.data.chats[id] || {};
 const botTt = global.db.data.settings[mconn?.conn?.user?.jid] || {};
 const adminId = '201061126830@s.whatsapp.net'; // Admin ID
 let text = '';
-
 switch (action) {
   case 'add':
+  case 'remove':
     if (chat.welcome && !chat?.isBanned) {
       const groupMetadata = await m?.conn?.groupMetadata(id) || (conn?.chats[id] || {}).metadata;
       for (const user of participants) {
@@ -1113,58 +1113,31 @@ switch (action) {
           const botTt2 = groupMetadata?.participants?.find((u) => m?.conn?.decodeJid(u.id) == m?.conn?.user?.jid) || {};
           const isBotAdminNn = botTt2?.admin === 'admin' || false;
 
-          text = (conn.welcome || chat.sWelcome || tradutor.texto1 || 'Welcome, @user!')
-            .replace('@subject', await m?.conn?.getName(id))
-            .replace('@desc', groupMetadata?.desc?.toString() || '*𝚂𝙸𝙽 𝙳𝙴𝚂𝙲𝚁𝙸𝙿𝙲𝙸𝙾𝙽*')
-            .replace('@user', '@' + user.split('@')[0])
-            .replace('@name', userName)
-            .replace('@admin', '@' + adminId.split('@')[0]);
+          text = (action === 'add' ? 
+            (conn.welcome || chat.sWelcome || tradutor.texto1 || 'Welcome, @user!')
+              .replace('@subject', await m?.conn?.getName(id))
+              .replace('@desc', groupMetadata?.desc?.toString() || '*𝚂𝙸𝙽 𝙳𝙴𝚂𝙲𝚁𝙸𝙿𝙲𝙸𝙾𝙽*')
+              .replace('@user', '@' + user.split('@')[0])
+              .replace('@name', userName)
+              .replace('@admin', '@' + adminId.split('@')[0]) :
+            (chat.sBye || tradutor.texto2 || conn.bye || 'Bye, @user!'))
+            .replace('@user', '@' + user.split('@')[0]);
 
-          if (userPrefix && chat.antiArab && botTt.restrict && isBotAdminNn) {
+          if (userPrefix && chat.antiArab && botTt.restrict && isBotAdminNn && action === 'add') {
             const responseb = await m.conn.groupParticipantsUpdate(id, [user], 'remove');
             if (responseb[0].status === '404') return;
-
-            const fkontak2 = {
-              'key': { 'participants': '0@s.whatsapp.net', 'remoteJid': 'status@broadcast', 'fromMe': false, 'id': 'Halo' },
-              'message': { 'contactMessage': { 'vcard': `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${user.split('@')[0]}:${user.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD` } },
-              'participant': '0@s.whatsapp.net'
+            const fkontak2 = { 
+              'key': { 'participants': '0@s.whatsapp.net', 'remoteJid': 'status@broadcast', 'fromMe': false, 'id': 'Halo' }, 
+              'message': { 'contactMessage': { 'vcard': `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${user.split('@')[0]}:${user.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD` } }, 
+              'participant': '0@s.whatsapp.net' 
             };
-            await m?.conn?.sendMessage(id, {
-              text: `*[❗] @${user.split('@')[0]} ᴇɴ ᴇsᴛᴇ ɢʀᴜᴘᴏ ɴᴏ sᴇ ᴘᴇʀᴍɪᴛᴇɴ ɴᴜᴍᴇʀᴏs ᴀʀᴀʙᴇs ᴏ ʀᴀʀᴏs, ᴘᴏʀ ʟᴏ ϙᴜᴇ sᴇ ᴛᴇ sᴀᴄᴀʀᴀ ᴅᴇʟ ɢʀᴜᴘᴏ*`,
-              mentions: [user]
-            }, { quoted: fkontak2 });
+            await m?.conn?.sendMessage(id, { text: `*[❗] @${user.split('@')[0]} ᴇɴ ᴇsᴛᴇ ɢʀᴜᴘᴏ ɴᴏ sᴇ ᴘᴇʀᴍɪᴛᴇɴ ɴᴜᴍᴇʀᴏs ᴀʀᴀʙᴇs ᴏ ʀᴀʀᴏs, ᴘᴏʀ ʟᴏ ϙᴜᴇ sᴇ ᴛᴇ sᴀᴄᴀʀᴀ ᴅᴇʟ ɢʀᴜᴘᴏ*`, mentions: [user] }, { quoted: fkontak2 });
             return;
           }
 
           await m?.conn?.sendFile(id, apii.data, 'pp.jpg', text, null, false, { mentions: [user, adminId] });
         } catch (e) {
           console.error(e);
-        }
-      }
-    }
-    break;
-
-  case 'remove':
-    if (chat.welcome && !chat?.isBanned) {
-      const groupMetadata = await m?.conn?.groupMetadata(id) || (conn?.chats[id] || {}).metadata;
-      for (const user of participants) {
-        const userData = global.db.data.users[user] || {};
-        const userName = userData.name || 'غير مسجل';
-
-        text = (chat.sBye || tradutor.texto2 || conn.bye || 'Bye, @user!')
-          .replace('@user', '@' + user.split('@')[0])
-          .replace('@name', userName);
-
-        try {
-          await m?.conn?.sendMessage(id, { text, mentions: [user] });
-        } catch (e) {
-          console.error(e);
-        }
-
-        // Remove user name and image from the database
-        if (global.db.data.users[user]) {
-          delete global.db.data.users[user].name;  // Delete the name
-          delete global.db.data.users[user].image; // Delete the image
         }
       }
     }
@@ -1225,7 +1198,7 @@ export async function callUpdate(callUpdate) {
         const callmsg = await mconn?.conn?.reply(nk.from, `Hola *@${nk.from.split('@')[0]}*, las ${nk.isVideo ? 'videollamadas' : 'llamadas'} no están permitidas, serás bloqueado.\n-\nSi accidentalmente llamaste póngase en contacto con mi creador para que te desbloquee!`, false, { mentions: [nk.from] });
         // let data = global.owner.filter(([id, isCreator]) => id && isCreator)
         // await this.sendContact(nk.from, data.map(([id, name]) => [id, name]), false, { quoted: callmsg })
-        const vcard = `BEGIN:VCARD\nVERSION:3.0\nN:;AURTHER;;;\nFN:AURTHER\nORG:AURTHER\nTITLE:\nitem1.TEL;waid=966560801636:+966 560 801 636\nitem1.X-ABLabel:AURTHER \nX-WA-BIZ-DESCRIPTION:[❗] AURTHER\nX-WA-BIZ-NAME:AURTHER\nEND:VCARD`;
+        const vcard = `BEGIN:VCARD\nVERSION:3.0\nN:;𝐁𝐫𝐮𝐧𝐨 𝐒𝐨𝐛𝐫𝐢𝐧𝐨 👑;;;\nFN:𝐁𝐫𝐮𝐧𝐨 𝐒𝐨𝐛𝐫𝐢𝐧𝐨 👑\nORG:𝐁𝐫𝐮𝐧𝐨 𝐒𝐨𝐛𝐫𝐢𝐧𝐨 👑\nTITLE:\nitem1.TEL;waid=5219992095479:+521 999 209 5479\nitem1.X-ABLabel:𝐁𝐫𝐮𝐧𝐨 𝐒𝐨𝐛𝐫𝐢𝐧𝐨 👑\nX-WA-BIZ-DESCRIPTION:[❗] ᴄᴏɴᴛᴀᴄᴛᴀ ᴀ ᴇsᴛᴇ ɴᴜᴍ ᴘᴀʀᴀ ᴄᴏsᴀs ɪᴍᴘᴏʀᴛᴀɴᴛᴇs.\nX-WA-BIZ-NAME:𝐁𝐫𝐮𝐧𝐨 𝐒𝐨𝐛𝐫𝐢𝐧𝐨 👑\nEND:VCARD`;
         await mconn.conn.sendMessage(nk.from, { contacts: { displayName: '𝐁𝐫𝐮𝐧𝐨 𝐒𝐨𝐛𝐫𝐢𝐧𝐨 👑', contacts: [{ vcard }] } }, { quoted: callmsg });
         await mconn.conn.updateBlockStatus(nk.from, 'block');
       }
