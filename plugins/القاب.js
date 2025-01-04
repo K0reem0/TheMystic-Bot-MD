@@ -9,7 +9,7 @@ let handler = async function (m, { conn, args }) {
   let registeredUsers = Object.values(global.db.data.users)
     .filter(user => user.registered && user.name.match(/[\u0600-\u06FF]/))
     .map(user => user.name)
-    .sort((a, b) => a.localeCompare(b, 'ar'))
+    .sort((a, b) => a.localeCompare(b, 'ar'));
 
   if (registeredUsers.length === 0) {
     return m.reply('لم يتم تسجيل اي لقب بعد');
@@ -19,7 +19,8 @@ let handler = async function (m, { conn, args }) {
   let currentLetter = '';
 
   for (let name of registeredUsers) {
-    let firstLetter = name.charAt(0);
+    // تطبيع الحرف الأول (اعتبار الألف والهمزات "أ" و"ا" نفس الشيء)
+    let firstLetter = name.charAt(0).replace(/أ|ا/, 'ا');
     if (firstLetter !== currentLetter) {
       namesList += `\n*❃ ──────⊰ ${firstLetter} ⊱────── ❃*\n\n`;
       currentLetter = firstLetter;
@@ -33,7 +34,6 @@ let handler = async function (m, { conn, args }) {
   namesList += `\n*❃ ──────⊰ ❀ ⊱────── ❃*\n`;
   namesList += (registeredCount === totalMembers) ? '◍ *تم تسجيل جميع الأعضاء*\n' : `عدد المسجلين: *${registeredCount} / ${totalMembers}*\n`;
   namesList += '*❃ ──────⊰ ❀ ⊱────── ❃*'; // Added line
-
 
   conn.reply(m.chat, namesList.trim(), m);
 }
