@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const handler = {};
 
@@ -27,18 +27,27 @@ const processInstagramLink = async (m, conn, link) => {
   );
 
   try {
-    const responseIg = await axios.get(`https://deliriussapi-oficial.vercel.app/download/instagram?url=${link}`);
-    const resultIg = responseIg.data;
+    // Make the API call to fetch Instagram video details
+    const response = await axios.get(`https://instagram-video-downloader-api-eight.vercel.app/igdl?url=${link}`);
+    const result = response.data;
 
-    if (resultIg.status && resultIg.data?.[0]?.url) {
-      const downloadUrl = resultIg.data[0].url;
-      await conn.sendFile(m.chat, downloadUrl, 'video.mp4', `Download complete`, m);
+    if (result.url?.status && Array.isArray(result.url.data) && result.url.data.length > 0) {
+      // Iterate through all download links and send them one by one
+      for (const media of result.url.data) {
+        if (media.url) {
+          await conn.sendFile(m.chat, media.url, "video.mp4", "تم التحميل بنجاح", m);
+        }
+      }
     } else {
-      throw new Error("لينك خاطئ او حدثت مشكلة اثناء التحميل.");
+      throw new Error("لينك خاطئ أو حدثت مشكلة أثناء التحميل.");
     }
   } catch (e) {
-    console.error("حدثت مشكلة اثناء معالجة اللينك:", e);
-    await conn.sendMessage(m.chat, { text: `فشل التحميل حاول لاحقا.` }, { edit: key });
+    console.error("حدثت مشكلة أثناء معالجة اللينك:", e);
+    await conn.sendMessage(
+      m.chat,
+      { text: "فشل التحميل. حاول لاحقًا." },
+      { edit: key }
+    );
   }
 };
 
