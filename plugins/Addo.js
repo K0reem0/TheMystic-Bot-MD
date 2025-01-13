@@ -16,7 +16,7 @@ const handler = async (m, { args }) => {
     const q = m.quoted ? m.quoted : m;
     const mime = (q.msg || q).mimetype || '';
     if (!mime || !/image\/(png|jpe?g|gif)/.test(mime)) {
-        throw 'رد ع الصورة واكتب الجواب بعد الأمر مثال : .ادراج ارثر';
+        throw 'رد على الصورة واكتب الجواب بعد الأمر مثال : .ادراج ارثر';
     }
 
     // Ensure a name argument is provided
