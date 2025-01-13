@@ -93,7 +93,7 @@ let handler = async (m, { conn }) => {
     // Fetch Arabic words from GitHub
     let ARABIC_WORDS = await fetchArabicWords();
     if (ARABIC_WORDS.length === 0) {
-        return conn.reply(m.chat, "لم أتمكن من الحصول على كلمة لتشغيل اللعبة.", m);
+        return conn.reply(m.chat, "لم اتمكن من الحصول على كلمة لتشغيل اللعبة.", m);
     }
 
     // Select a random Arabic word from the list
