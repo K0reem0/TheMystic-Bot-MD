@@ -22,30 +22,45 @@ const processYouTubeLink = async (m, conn, link) => {
     // Notify user about the download process
     const { key } = await conn.sendMessage(
       m.chat,
-      { text: 'Downloading YouTube video...' },
+      { text: '⏳ جاري تحميل فيديو اليوتيوب...' },
       { quoted: m }
     );
 
-    // Use a reliable and robust API (example: YTDL-Core)
-    const ytdl = require('ytdl-core'); // Import ytdl-core library
-    const info = await ytdl.getInfo(link); 
+    // Use the provided API to get video details
+    const apiUrl = `https://d7c6b89f-2204-4cad-838a-93412968a472-00-3joifo184f3b6.sisko.replit.dev/api/getVideo?url=${link}`;
+    const response = await axios.get(apiUrl);
 
-    // Get the highest quality video URL
-    const formats = info.formats.filter(format => format.container === 'mp4');
-    const highestQuality = formats.reduce((prev, curr) => 
-      (prev.qualityLabel || 0) > (curr.qualityLabel || 0) ? prev : curr
-    );
-    const downloadUrl = highestQuality.url; 
+    // Extract data from the API response
+    const data = response.data;
+    if (data && data.data && data.data.media && data.data.media.download && data.data.media.download.url) {
+      const downloadUrl = data.data.media.download.url; // Video download URL
+      const title = data.data.title || 'video';
+      const fileSize = 'غير معروف'; // File size not provided by the API
 
-    if (downloadUrl) {
-      // Send downloaded video to the chat
-      await conn.sendFile(m.chat, downloadUrl, 'video.mp4', 'YouTube video downloaded!', m);
+      // Send the downloaded video to the chat
+      await conn.sendFile(
+        m.chat,
+        downloadUrl,
+        `${title}.mp4`,
+        `✅ تم تحميل الفيديو بنجاح!\nالعنوان: ${title}`,
+        m,
+        false,
+        { mimetype: 'video/mp4' }
+      );
     } else {
-      await conn.sendMessage(m.chat, { text: 'Failed to download video.' }, { edit: key });
+      await conn.sendMessage(
+        m.chat,
+        { text: '❌ حدث خطأ أثناء الحصول على رابط التحميل.' },
+        { edit: key }
+      );
     }
   } catch (e) {
     console.error('Error downloading YouTube video:', e);
-    await conn.sendMessage(m.chat, { text: 'Failed to download video.' }, { edit: key });
+    await conn.sendMessage(
+      m.chat,
+      { text: '⚠️ حدث خطأ أثناء تحميل الفيديو.' },
+      { edit: key }
+    );
   }
 };
 
