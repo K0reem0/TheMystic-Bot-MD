@@ -1,40 +1,30 @@
-name: Deploy Node.js App
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
-      - main  # Change this to your deployment branch
+      - main  # Deploy when the main branch is updated
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18  # Change to your Node.js version
-          cache: 'npm'
+          node-version: 18
 
-      - name: Install dependencies
-        run: npm install --production
+      - name: Install Dependencies
+        run: npm install
 
-      - name: Build the project (optional)
-        run: npm start
-        env:
-          NODE_ENV: production
+      - name: Build Project (if applicable)
+        run: npm run build  # Adjust if your project has a build step
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v0.1.10
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /var/www/myapp  # Change to your app directory
-            git pull origin main
-            npm install --production
-            pm2 restart myapp  # Restart your app using PM2
+          branch: gh-pages  # Deploy to this branch
+          folder: dist  # Adjust to match your output folder
