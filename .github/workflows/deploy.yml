@@ -1,0 +1,40 @@
+name: Deploy Node.js App
+
+on:
+  push:
+    branches:
+      - main  # Change this to your deployment branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18  # Change to your Node.js version
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --production
+
+      - name: Build the project (optional)
+        run: npm start
+        env:
+          NODE_ENV: production
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/myapp  # Change to your app directory
+            git pull origin main
+            npm install --production
+            pm2 restart myapp  # Restart your app using PM2
