@@ -1,8 +1,10 @@
 const handler = async (m, { conn, args, groupMetadata }) => {
   let who;
-    if (m.isGroup) {
-        who = m.mentionedJid?.[0] ?? (m.quoted ? await m.quoted.sender : false);
-    } else who = m.chat;
+  if (m.isGroup) {
+    who = m.mentionedJid?.[0] ?? (m.quoted ? await m.quoted.sender : m.sender);
+  } else {
+    who = m.chat;
+  }
 
   if (!global.db || !global.db.data || !global.db.data.users) {
     throw 'قاعدة البيانات غير مهيأة.';
@@ -12,7 +14,9 @@ const handler = async (m, { conn, args, groupMetadata }) => {
 
   // Check if the user exists in the database and has a name
   if (!user || !user.name || user.name.trim() === '') {
-    throw 'اسم المستخدم غير مسجل. يرجى التسجيل أولاً.';
+    throw who === m.sender
+      ? 'أنت لم تسجل اسمك بعد. استخدم أمر التسجيل أولاً.'
+      : 'اسم المستخدم غير مسجل.';
   }
 
   const { name, kickTime, image } = user;
@@ -33,13 +37,11 @@ const handler = async (m, { conn, args, groupMetadata }) => {
   replyMessage += `*❃ ──────⊰ ❀ ⊱────── ❃*`;
 
   if (image) {
-    // Send the reply with the user's image
     await conn.sendMessage(m.chat, {
       image: { url: image },
       caption: replyMessage,
     });
   } else {
-    // Send the reply without an image
     m.reply(replyMessage);
   }
 };
