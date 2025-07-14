@@ -39,11 +39,14 @@ function pipeEmit(event, event2, prefix = '') {
 }
 
 function keepAlive() {
-  const url = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
-  if (/(\/\/|\.)undefined\./.test(url)) return;
+  const url = process.env.HEROKU_URL; // أضف هذا المتغير في Heroku (مثلاً: https://your-app-name.herokuapp.com)
+  if (!url || !/^https?:\/\//.test(url)) return;
+
   setInterval(() => {
-    fetch(url).catch(console.error);
-  }, 5 * 1000 * 60);
+    fetch(url)
+      .then(res => console.log('🔁 KeepAlive ping enviado a', url))
+      .catch(err => console.error('❌ Fallo en KeepAlive:', err));
+  }, 5 * 60 * 1000); // كل 5 دقائق
 }
 
 export default connect;
