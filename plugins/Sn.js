@@ -1,8 +1,8 @@
 const handler = async (m, { conn, args, groupMetadata }) => {
-  let who =
-    m.quoted?.sender ||
-    (m.mentionedJid && m.mentionedJid[0]) ||
-    (m.fromMe ? conn.user.jid : m.sender);
+  let who;
+    if (m.isGroup) {
+        who = m.mentionedJid?.[0] ?? (m.quoted ? await m.quoted.sender : false);
+    } else who = m.chat;
 
   if (!global.db || !global.db.data || !global.db.data.users) {
     throw 'قاعدة البيانات غير مهيأة.';
