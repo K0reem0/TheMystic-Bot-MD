@@ -1,59 +1,106 @@
+import axios from 'axios';
 import yts from 'yt-search';
-import tools from '@shiroko/module';
 
-let handler = async (m, { conn, args, text, usedPrefix, command }) => {
-const datas = global;
-const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje;
-const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
-const tradutor = _translate.plugins.descargas_play
-
-if (!text) throw `${tradutor.texto1[0]} ${usedPrefix + command} ${tradutor.texto1[1]}`;      
-let additionalText = '';
-if (['play'].includes(command)) {
- additionalText = 'audio';
-} else if (['play2'].includes(command)) {
- additionalText = 'vídeo';
-}
-
-const regex = "https://youtube.com/watch?v="
-const result = await search(args.join(' '));
-const body = `${tradutor.texto2[0]} ${result.title}\n${tradutor.texto2[1]} ${result.ago}\n${tradutor.texto2[2]} ${result.duration.timestamp}\n${tradutor.texto2[3]} ${formatNumber(result.views)}\n${tradutor.texto2[4]} ${result.author.name}\n${tradutor.texto2[5]} ${result.videoId}\n${tradutor.texto2[6]} ${result.type}\n${tradutor.texto2[7]} ${result.url}\n${tradutor.texto2[8]} ${result.author.url}\n\n${tradutor.texto2[9]} ${additionalText}, ${tradutor.texto2[10]}`.trim();
-conn.sendMessage(m.chat, { image: { url: result.thumbnail }, caption: body }, { quoted: m });
-
-if (command === 'play') {
-try {
-const audiodlp = await tools.downloader.ytmp3(regex + result.videoId);
-const downloader = audiodlp.download;
-conn.sendMessage(m.chat, { audio: { url: downloader }, mimetype: "audio/mpeg" }, { quoted: m });
-} catch (error) {
- console.log(error);
- conn.reply(m.chat, tradutor.texto6, m);
- }
-}
-
-if (command === 'play2') {
-try {
-const videodlp = await tools.downloader.ytmp4(regex + result.videoId);
-const downloader = videodlp.download;
-conn.sendMessage(m.chat, { video: { url: downloader }, mimetype: "video/mp4" }, { quoted: m });
-} catch (error) {
- console.log(error);
- conn.reply(m.chat, tradutor.texto6, m);
+const handler = async (m, { conn, args }) => {
+  if (!m || typeof m !== 'object') {
+    console.error("Invalid message object.");
+    return;
   }
- }
+
+  if (!args.length) {
+    return conn.reply(m.chat, '*أدخل رابط الفيديو أو كلمات البحث.*', m);
+  }
+
+  const pingMsg = await conn.reply(m.chat, "جاري البحث... ⏳", m);
+
+  try {
+    let videoUrl;
+    let videoTitle;
+
+    const updateMessage = async (newText) => {
+      await conn.relayMessage(
+        m.chat,
+        {
+          protocolMessage: {
+            key: pingMsg.key,
+            type: 14,
+            editedMessage: {
+              conversation: newText,
+            },
+          },
+        },
+        {}
+      );
+    };
+
+    if (args[0].startsWith("http")) {
+      videoUrl = args[0];
+      await updateMessage(" تم اكتشاف رابط الفيديو. جاري التحميل...");
+    } else {
+      const query = args.join(" ");
+      await updateMessage(` البحث عن: *${query}*`);
+
+      try {
+        const searchResults = await yts(query);
+        if (searchResults.videos.length > 0) {
+          const firstResult = searchResults.videos[0];
+          videoUrl = firstResult.url;
+          videoTitle = firstResult.title;
+          await updateMessage(` تم العثور على: *${videoTitle}*\n⏳ جاري التحميل...`);
+        } else {
+          return await updateMessage("❌ لم يتم العثور على نتائج.");
+        }
+      } catch (searchError) {
+        console.error("Error during search:", searchError);
+        return await updateMessage("⚠️ حدث خطأ أثناء البحث.");
+      }
+    }
+
+    if (!videoUrl || !videoUrl.startsWith("http")) {
+      return await updateMessage("❌ رابط الفيديو غير صالح.");
+    }
+
+    const apiUrl = `https://yt-dl0-8070764f8768.herokuapp.com/api/getVideo?url=${videoUrl}`;
+    await updateMessage("⏳ يتم الآن تحميل الفيديو من واجهة برمجة التطبيقات الجديدة...");
+
+    const response = await axios.get(apiUrl);
+    const data = response.data;
+
+    if (data && data.data && data.data.media && data.data.media.download && data.data.media.download.url) { // فحص شامل
+      const downloadUrl = data.data.media.download.url; // الوصول الصحيح للرابط
+      const title = videoTitle || data.data.title || "video";
+      const fileSize = "غير معروف"; // لا يوجد حجم في الرد، لذا نتركه "غير معروف" مؤقتًا
+
+      await updateMessage(` يتم إرسال الفيديو: *${title}*`); // لا نعرض الحجم لأنه غير متوفر
+
+      try {
+        await conn.sendFile(
+          m.chat,
+          downloadUrl,
+          `${title}.mp4`,
+          ` تم التحميل بنجاح!\n العنوان: ${title}`, // لا نعرض الحجم
+          m,
+          false,
+          { mimetype: 'video/mp4' }
+        );
+      } catch (sendFileError) {
+          console.error("Error sending file:", sendFileError);
+          return await updateMessage(`⚠️ حدث خطأ أثناء إرسال الملف.`);
+      }
+
+    } else {
+      console.error("Invalid API response:", data);
+      return await updateMessage("⚠️ حدث خطأ في بيانات واجهة برمجة التطبيقات.");
+    }
+
+  } catch (error) {
+    console.error("General error:", error);
+    return await updateMessage(`⚠️ حدث خطأ عام: ${error.message}`);
+  }
 };
 
-handler.help = ['play', 'play2'];
+handler.help = ['youtube <link yt> | <search query>'];
 handler.tags = ['downloader'];
-handler.command = ['play', 'play2'];
+handler.command = /^(شغل)$/i;
 
 export default handler;
-
-async function search(query, options = {}) {
-  const search = await yts.search({query, hl: 'es', gl: 'ES', ...options});
-  return search.videos[0];
-}
-
-function formatNumber(num) {
- return num.toLocaleString();
-}

@@ -1,48 +1,98 @@
-import {createHash} from 'crypto';
-const Reg = /\|?(.*)([.|] *?)([0-9]*)$/i;
+import { createHash } from 'crypto';
+import uploadImage from '../src/libraries/uploadImage.js'; // Ensure this is the correct path
 
-const handler = async function(m, {conn, text, usedPrefix, command}) {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.rpg_verificar
+let handler = async (m, { conn, text, args, groupMetadata, usedPrefix, command }) => {
+    let who = m.quoted ? m.quoted.sender : (m.mentionedJid && m.mentionedJid[0]) ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender;
 
-  const user = global.db.data.users[m.sender];
-  const name2 = conn.getName(m.sender);
-  const pp = await conn.profilePictureUrl(m.sender, 'image').catch((_) => global.imagen1);
-  if (user.registered === true) throw `${tradutor.texto1[0]}\n*${usedPrefix}unreg* ${tradutor.texto1[1]}`;
-  if (!Reg.test(text)) throw `${tradutor.texto2[0]} : ${usedPrefix + command} ${tradutor.texto2[1]} ${usedPrefix + command} Shadow.18*`;
-  let [_, name, splitter, age] = text.match(Reg);
-  if (!name) throw tradutor.texto3;
-  if (!age) throw tradutor.texto5;
-  if (name.length >= 30) throw tradutor.texto6;
-  age = parseInt(age);
-  if (age > 100) throw tradutor.texto6;
-  if (age < 5) throw tradutor.texto7;
-  user.name = name.trim();
-  user.age = age;
-  user.regTime = + new Date;
-  user.registered = true;
-  const sn = createHash('md5').update(m.sender).digest('hex');
-  const caption = `${tradutor.texto8[0]}
-${tradutor.texto8[1]}」
-${tradutor.texto8[2]}
-${tradutor.texto8[3]} ${name}
-${tradutor.texto8[4]} ${age} ${tradutor.texto8[5]}
-${tradutor.texto8[6]} 
-┃ ${sn}
-${tradutor.texto8[7]}
-${tradutor.texto8[8]} 
-${tradutor.texto8[9]}
-${tradutor.texto8[10]}
-${tradutor.texto8[11]}`;
-  // let author = global.author
-  await conn.sendFile(m.chat, pp, 'mystic.jpg', caption, m);
-  // conn.sendButton(m.chat, caption, `¡𝚃𝚄 𝙽𝚄𝙼𝙴𝚁𝙾 𝙳𝙴 𝚂𝙴𝚁𝙸𝙴 𝚃𝙴 𝚂𝙴𝚁𝚅𝙸𝚁𝙰 𝙿𝙾𝚁 𝚂𝙸 𝙳𝙴𝚂𝙴𝙰𝚂 𝙱𝙾𝚁𝚁𝙰𝚁 𝚃𝚄 𝚁𝙴𝙶𝙸𝚂𝚃𝚁𝙾 𝙴𝙽 𝙴𝙻 𝙱𝙾𝚃!\n${author}`, [['¡¡𝙰𝙷𝙾𝚁𝙰 𝚂𝙾𝚈 𝚄𝙽 𝚅𝙴𝚁𝙸𝙵𝙸𝙲𝙰𝙳𝙾/𝙰!!', '/profile']], m)
-  global.db.data.users[m.sender].money += 10000;
-  global.db.data.users[m.sender].exp += 10000;
+    // Ensure the user exists in the database
+    if (!global.db.data.users[who]) {
+        global.db.data.users[who] = {
+            registered: false,
+            name: null,
+            regTime: null,
+            image: null, // New field for storing image link
+            exp: 0, // Initialize exp to 0
+            messages: 0,
+        };
+    }
+
+    let user = global.db.data.users[who];
+
+    if (user.registered === true) throw `*لقد تم تسجيله بالفعل*`;
+
+    let name = '';
+
+    if (m.mentionedJid && m.mentionedJid.length > 0 && text.trim().split(' ').length > 1) {
+        name = text.trim().split(' ').slice(1).join(' ');
+    } else {
+        let Reg = /^\s*([^]*)\s*$/;
+        if (!Reg.test(text)) throw `*المثال الصحيح: ${usedPrefix}تسجيل اسمك*`;
+
+        let [_, enteredName] = text.match(Reg);
+        if (!enteredName) throw '*أكتب الاسم*';
+        if (enteredName.length >= 30) throw '*الاسم طويل*';
+
+        name = enteredName.trim();
+    }
+
+    const isNameTaken = Object.values(global.db.data.users).some(existingUser => {
+        if (typeof existingUser.name === 'string') {
+            return existingUser.name.toLowerCase() === name.toLowerCase();
+        }
+        return false;
+    });
+
+    if (isNameTaken) {
+        throw '*الاسم مستخدم بالفعل*';
+    }
+
+    let imageUrl = null;
+    if (m.quoted && /image\/(png|jpe?g)/.test(m.quoted.mimetype)) {
+        try {
+            const media = await m.quoted.download(); // Download the image
+            imageUrl = await uploadImage(media); // Upload the image and get the link
+        } catch (e) {
+            console.error(e);
+            throw '*حدث خطأ أثناء تحميل الصورة. حاول مرة أخرى.*';
+        }
+    }
+
+    user.name = name;
+    user.regTime = +new Date();
+    user.registered = true;
+    user.image = imageUrl; // Save the image link (or null if no image)
+    user.exp = 100; // Set exp to 100 upon registration
+    user.messages = 1;
+
+    let sn = createHash('md5').update(who).digest('hex').slice(0, 21);
+
+    const replyMessage = `*❃ ──────⊰ ❀ ⊱────── ❃*
+◍ *تم تسجيلك في قاعدة البيانات*
+*❃ ──────⊰ ❀ ⊱────── ❃*
+◍ *الاسم:* *${name}*
+◍ *الايدي:* *${sn}*
+*❃ ──────⊰ ❀ ⊱────── ❃*`;
+
+    if (imageUrl) {
+        // Send reply with the image
+        await conn.sendMessage(m.chat, { 
+            image: { url: imageUrl }, 
+            caption: replyMessage 
+        });
+    } else {
+        // Send reply without an image
+        m.reply(replyMessage);
+    }
 };
-handler.help = ['verificar'];
-handler.tags = ['xp'];
-handler.command = /^(verify|register|verificar|reg|registrar)$/i;
+
+// ... rest of the code remains unchanged
+
+handler.help = ['reg'].map(v => v + ' <الاسم>');
+handler.tags = ['rg'];
+handler.command = ['تسجيل', 'اشتراك', 'register', 'registrar']; 
+handler.group = true;
+handler.admin = true;
+handler.botAdmin = true;
+handler.fail = null;
+
 export default handler;
