@@ -1,26 +1,79 @@
-const handler = async (m, {isOwner, isAdmin, conn, text, participants, args, command, usedPrefix}) => {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.gc_tagall
+let handler = async (m, { conn, participants }) => {
+  if (m.chat.endsWith('120363400371988493@g.us')) {
+    // نجهز البداية العامة
+    let teks = "*❃ ─────────⊰ ❀ ⊱───────── ❃*\n\n" +  
+               "*مـنشــــــن عـــــــــام لأعــــــضاء ومشرفـــين*\n" +  
+               "*✦╎『 ‏𝐒𝐏𝐀𝐑𝐓𝐀 𓆩🛡️𓆪 𝐊𝐈𝐍𝐆𝐃𝐎𝐌』╎✦*\n" +  
+               "*المنشن خاص للمشرفين نتأسف على الازعاج*\n\n";
 
-  if (usedPrefix == 'a' || usedPrefix == 'A') return;
-  if (!(isAdmin || isOwner)) {
-    global.dfail('admin', m, conn);
-    throw false;
+    // إلغاء تسجيل من خرجوا من القروب
+    Object.keys(global.db.data.users).forEach(userjid => {
+      const user = global.db.data.users[userjid];
+      const isInParticipants = participants.some(mem => mem.jid === userjid);
+      if (user.registered && !isInParticipants) {
+        user.registered = false;
+        user.name = '';
+        user.regTime = 0;
+      }
+    });
+
+    // ترتيب حسب الاسم
+    participants.sort((a, b) => {
+      let userA = global.db.data.users[a.jid] || { registered: false, name: "غير مسجل ⚠️" };
+      let userB = global.db.data.users[b.jid] || { registered: false, name: "غير مسجل ⚠️" };
+      return userA.name.localeCompare(userB.name, 'ar', { sensitivity: 'base' });
+    });
+
+    let currentLetter = '';
+    let firstLetterUsed = '';
+    let foundRegistered = false;
+    let unregisteredList = [];
+
+    for (let mem of participants) {
+      let user = global.db.data.users[mem.jid] || { registered: false, name: "غير مسجل ⚠️" };
+
+      if (user.registered) {
+        foundRegistered = true;
+        let firstLetter = user.name.charAt(0);
+
+        // أول حرف يظهر نستخدمه بدل "هنا"
+        if (!firstLetterUsed) {
+          firstLetterUsed = firstLetter;
+          teks += `*❃ ─────────⊰ ${firstLetter} ⊱───────── ❃*\n\n`;
+          currentLetter = firstLetter;
+        } else if (firstLetter !== currentLetter) {
+          teks += `*❃ ─────────⊰ ${firstLetter} ⊱───────── ❃*\n\n`;
+          currentLetter = firstLetter;
+        }
+
+        teks += `◍ ${user.name} @${mem.jid.split('@')[0]}\n\n`;
+      } else {
+        unregisteredList.push(`◍ غير مسجل ⚠️ @${mem.jid.split('@')[0]}`);
+      }
+    }
+
+    if (!foundRegistered) {
+      // ما في ولا واحد مسجل، نستبدل "هنا" بـ ⚠️ مباشرة
+      teks += "*❃ ─────────⊰ ⚠️ ⊱───────── ❃*\n\n";
+    }
+
+    if (unregisteredList.length > 0) {
+      if (foundRegistered) {
+        teks += "*❃ ─────────⊰ ⚠️ ⊱───────── ❃*\n\n";
+      }
+      teks += unregisteredList.join('\n') + '\n';
+    }
+
+    teks += "\n*❃ ─────────⊰ ❀ ⊱───────── ❃*";
+
+    conn.sendMessage(m.chat, { text: teks, mentions: participants.map(a => a.jid) });
   }
-  const pesan = args.join` `;
-  const oi = `${tradutor.texto1[0]} ${pesan}`;
-  let teks = `${tradutor.texto1[1]}  ${oi}\n\n${tradutor.texto1[2]}\n`;
-  for (const mem of participants) {
-    teks += `┣➥ @${mem.id.split('@')[0]}\n`;
-  }
-  teks += `*└* 𝐁𝐲 𝐓𝐡𝐞 𝐌𝐲𝐬𝐭𝐢𝐜 - 𝐁𝐨𝐭\n\n*▌│█║▌║▌║║▌║▌║▌║█*`;
-  conn.sendMessage(m.chat, {text: teks, mentions: participants.map((a) => a.id)} );
 };
-handler.help = ['tagall <mesaje>', 'invocar <mesaje>'];
+
+handler.help = ['mentionall'];
 handler.tags = ['group'];
-handler.command = /^(tagall|invocar|invocacion|todos|invocación)$/i;
-handler.admin = true;
+handler.command = /^منشن$/i;
 handler.group = true;
+handler.admin = true;
+
 export default handler;
