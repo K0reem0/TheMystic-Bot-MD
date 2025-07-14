@@ -1,63 +1,55 @@
-const handler = async (m, {conn, text, command, usedPrefix}) => {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.gc_warn
-
-  if (m.mentionedJid.includes(conn.user.jid)) return;
-  const pp = './src/assets/images/menu/main/warn.jpg';
-  let who;
+let war = 3
+let handler = async (m, { conn, text, args, groupMetadata, usedPrefix, command }) => {      
+         let who
   if (m.isGroup) {
     who = m.mentionedJid[0] ?
       m.mentionedJid[0] :
       m.quoted ?
-      await m?.quoted?.sender :
-      text;
-  } else who = m.chat;
-  const user = global.db.data.users[who];
-  const bot = global.db.data.settings[conn.user.jid] || {};
-  const dReason = 'Sin motivo';
-  const msgtext = text || dReason;
-  const sdms = msgtext.replace(/@\d+-?\d* /g, '');
-  const warntext = `${tradutor.texto1}\n*${
-    usedPrefix + command
-  } @${global.suittag}*`;
-  if (!who) {
-    throw m.reply(warntext, m.chat, {mentions: conn.parseMention(warntext)});
-  }
-  user.warn += 1;
-  await m.reply(
-      `${
-      user.warn == 1 ? `*@${who.split`@`[0]}*` : `*@${who.split`@`[0]}*`
-      } ${tradutor.texto2[0]} ${sdms}\n${tradutor.texto2[1]} ${
-        user.warn
-      }/3*`,
-      null,
-      {mentions: [who]},
-  );
-  if (user.warn >= 3) {
-    if (!bot.restrict) {
-      return m.reply(
-          `${tradutor.texto3[0]} (#𝚎𝚗𝚊𝚋𝚕𝚎 𝚛𝚎𝚜𝚝𝚛𝚒𝚌𝚝) ${tradutor.texto3[1]}`,
-      );
-    }
-    user.warn = 0;
-    await m.reply(
-        `${tradutor.texto4[0]}\n*@${
-          who.split`@`[0]
-        }* ${tradutor.texto4[1]}`,
-        null,
-        {mentions: [who]},
-    );
-    await conn.groupParticipantsUpdate(m.chat, [who], 'remove');
-  }
-  return !1;
-};
+      await m?.quoted?.sender : false
+  } else who = m.chat
+  const user = global.db.data.users[who]
+        if (!who) throw `منشن يوزر`
+        let name = conn.getName(m.sender)
+        let warn = global.db.data.users[who].warn
+        if (warn < war) {
+            global.db.data.users[who].warn += 1
+            m.reply(`
+*❃ ──────⊰ ❀ ⊱────── ❃*
+        ⚠️ *بطاقة انذار* ⚠️
+*❃ ──────⊰ ❀ ⊱────── ❃*
+◍ *المشرف :* ${name}
+◍ *اليوزر :* @${who.split`@`[0]}
+◍ *الأنذارات :* ${warn + 1}/${war}
+◍ *السبب :* ${text}
+*❃ ──────⊰ ❀ ⊱────── ❃*`, null, { mentions: [who] }) 
+            m.reply(`
+*❃ ──────⊰ ❀ ⊱────── ❃*
 
-handler.tags = ['group'];
-handler.help = ['warn'];
-handler.command = /^(advertir|advertencia|warn|warning)$/i;
-handler.group = true;
-handler.admin = true;
-handler.botAdmin = true;
-export default handler;
+⚠️ *تنبيه* ⚠️
+لقد تلقيت انذار من مشرف
+
+◍ *الأنذارات :* ${warn + 1}/${war} 
+اذا تلقيت *${war}* إنذارات ف سوف تنطرد تلقائيا
+
+*❃ ──────⊰ ❀ ⊱────── ❃*
+`, who)
+        } else if (warn == war) {
+            global.db.data.users[who].warn = 0
+            m.reply(`⛔ المستخدم بلغ *${war}* أي العدد الأقصى المسموح به سوف يتم ازالته`)
+            await time(3000)
+            await conn.groupParticipantsUpdate(m.chat, [who], 'remove')
+            m.reply(`♻️ تم طردك من *${groupMetadata.subject}* بسبب تلقيك العدد الأقصى من الانذارات*${war}* انذارات`, who)
+        }
+}
+handler.help = ['warn @user']
+handler.tags = ['group']
+handler.command = ['انذار'] 
+handler.group = true
+handler.admin = true
+handler.botAdmin = true
+
+export default handler
+
+const time = async (ms) => {
+            return new Promise(resolve => setTimeout(resolve, ms));
+}
