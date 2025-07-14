@@ -22,7 +22,7 @@ const handler = async (m, {conn, text, participants, isOwner, isAdmin}) => {
     const isMedia = /image|video|sticker|audio/.test(mime);
     const more = String.fromCharCode(8206);
     const masss = more.repeat(850);
-    const htextos = `${text ? text : '*Hola :D*'}`;
+    const htextos = `${text ? text : '*مخفي :D*'}`;
     if ((isMedia && quoted.mtype === 'imageMessage') && htextos) {
       var mediax = await quoted.download?.();
       conn.sendMessage(m.chat, {image: mediax, mentions: users, caption: htextos, mentions: users}, {quoted: m});
@@ -42,7 +42,7 @@ const handler = async (m, {conn, text, participants, isOwner, isAdmin}) => {
 };
 handler.help = ['hidetag'];
 handler.tags = ['group'];
-handler.command = /^(hidetag|notificar|notify|tag)$/i;
+handler.command = /^(hidetag|مخفي|تنبيه|tag)$/i;
 handler.group = true;
 handler.admin = true;
 export default handler;
