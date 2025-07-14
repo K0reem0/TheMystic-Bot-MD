@@ -1,95 +1,92 @@
 import { createHash } from 'crypto';
-import uploadImage from '../src/libraries/uploadImage.js'; // Ensure this is the correct path
+import uploadImage from '../src/libraries/uploadImage.js'; // تأكد من صحة المسار
 
-let handler = async (m, { conn, text, args, groupMetadata, usedPrefix, command }) => {
-    let who = m.quoted ? m.quoted.sender : (m.mentionedJid && m.mentionedJid[0]) ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender;
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+    let who;
+    if (m.isGroup) {
+        who = m.mentionedJid?.[0] ?? (m.quoted ? await m.quoted.sender : false);
+    } else who = m.chat;
 
-    // Ensure the user exists in the database
+    if (!who) throw '*منشن الشخص أو رد عليه لتسجيله*';
+
+    // أنشئ السجل إذا ما كان موجود
     if (!global.db.data.users[who]) {
         global.db.data.users[who] = {
             registered: false,
             name: null,
             regTime: null,
-            image: null, // New field for storing image link
-            exp: 0, // Initialize exp to 0
+            image: null,
+            exp: 0,
             messages: 0,
         };
     }
 
-    let user = global.db.data.users[who];
+    const user = global.db.data.users[who];
+    if (user.registered) throw '*تم تسجيل هذا المستخدم مسبقًا*';
 
-    if (user.registered === true) throw `*لقد تم تسجيله بالفعل*`;
-
+    // استخراج الاسم من النص
     let name = '';
-
     if (m.mentionedJid && m.mentionedJid.length > 0 && text.trim().split(' ').length > 1) {
         name = text.trim().split(' ').slice(1).join(' ');
     } else {
-        let Reg = /^\s*([^]*)\s*$/;
-        if (!Reg.test(text)) throw `*المثال الصحيح: ${usedPrefix}تسجيل اسمك*`;
-
-        let [_, enteredName] = text.match(Reg);
-        if (!enteredName) throw '*أكتب الاسم*';
-        if (enteredName.length >= 30) throw '*الاسم طويل*';
-
-        name = enteredName.trim();
+        const nameText = text?.trim();
+        if (!nameText) throw `*اكتب الاسم بعد الأمر*\nمثال: ${usedPrefix + command} أحمد`;
+        if (nameText.length >= 30) throw '*الاسم طويل جدًا*';
+        name = nameText;
     }
 
-    const isNameTaken = Object.values(global.db.data.users).some(existingUser => {
-        if (typeof existingUser.name === 'string') {
-            return existingUser.name.toLowerCase() === name.toLowerCase();
-        }
-        return false;
+    // التأكد من أن الاسم غير مستخدم فقط من قبل مستخدمين مسجلين
+    const isNameTaken = Object.entries(global.db.data.users).some(([jid, existingUser]) => {
+        return (
+            jid !== who &&
+            existingUser.registered &&
+            existingUser.name?.toLowerCase() === name.toLowerCase()
+        );
     });
 
-    if (isNameTaken) {
-        throw '*الاسم مستخدم بالفعل*';
-    }
+    if (isNameTaken) throw '*الاسم مستخدم بالفعل*';
 
+    // محاولة أخذ صورة من الرد فقط، لا تأخذ صورة الملف الشخصي
     let imageUrl = null;
     if (m.quoted && /image\/(png|jpe?g)/.test(m.quoted.mimetype)) {
         try {
-            const media = await m.quoted.download(); // Download the image
-            imageUrl = await uploadImage(media); // Upload the image and get the link
+            const media = await m.quoted.download();
+            imageUrl = await uploadImage(media);
         } catch (e) {
             console.error(e);
             throw '*حدث خطأ أثناء تحميل الصورة. حاول مرة أخرى.*';
         }
     }
 
-    user.name = name;
+    user.name = name.trim();
     user.regTime = +new Date();
     user.registered = true;
-    user.image = imageUrl; // Save the image link (or null if no image)
-    user.exp = 100; // Set exp to 100 upon registration
+    user.image = imageUrl;
+    user.exp = 100;
     user.messages = 1;
 
-    let sn = createHash('md5').update(who).digest('hex').slice(0, 21);
+    const sn = createHash('md5').update(who).digest('hex').slice(0, 21);
 
     const replyMessage = `*❃ ──────⊰ ❀ ⊱────── ❃*
-◍ *تم تسجيلك في قاعدة البيانات*
+◍ *تم تسجيلك بنجاح*
 *❃ ──────⊰ ❀ ⊱────── ❃*
 ◍ *الاسم:* *${name}*
 ◍ *الايدي:* *${sn}*
 *❃ ──────⊰ ❀ ⊱────── ❃*`;
 
     if (imageUrl) {
-        // Send reply with the image
-        await conn.sendMessage(m.chat, { 
-            image: { url: imageUrl }, 
-            caption: replyMessage 
+        await conn.sendMessage(m.chat, {
+            image: { url: imageUrl },
+            caption: replyMessage
         });
     } else {
-        // Send reply without an image
         m.reply(replyMessage);
     }
 };
 
-// ... rest of the code remains unchanged
-
-handler.help = ['reg'].map(v => v + ' <الاسم>');
+handler.help = ['تسجيل <الاسم>'];
 handler.tags = ['rg'];
-handler.command = ['تسجيل', 'اشتراك', 'register', 'registrar']; 
+handler.command = ['تسجيل', 'register', 'reg', 'registrar'];
 handler.group = true;
 handler.admin = true;
 handler.botAdmin = true;
