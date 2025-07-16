@@ -446,7 +446,7 @@ global.reloadHandler = async function(restatConn) {
 
   // Para cambiar estos mensajes, solo los archivos en la carpeta de language, 
   // busque la clave "handler" dentro del json y cámbiela si es necesario
-  conn.welcome = '👋 ¡Bienvenido/a!\n@user';
+  conn.welcome = '｢𝐒𝐏𝐀𝐑𝐓𝐀 🛡️｣━━━━•ೋ•\n\n◞اعــلان ترحيـب╎🛡️◜\n\n┄⟞❲❉❳⟝┄\n\n> ˼‏‏🛡️˹┊اللقـب ⤺\n﹝@name﹞\n\n> ˼‏‏📯˹┊الـمـنشـن ⤺\n﹝@user﹞\n\n> ˼‏‏🏮˹┊الـمـسـؤول  ⤺\n﹝@admin1, @admin2﹞\n\n┄⟞❲❉❳⟝┄\n\n*◞ قــوانـيـن الـنقـابـة ◜*\n『https://bit.ly/4aH5fO2』\n\n*◞ اعلانات الـنقـابـة ◜*\n『https://2u.pw/63sSx』\n\n•ೋ•━━━━｢𝐒𝐏𝐀𝐑𝐓𝐀 🛡️｣';
   conn.bye = '👋 ¡Hasta luego!\n@user';
   conn.spromote = '*[ ℹ️ ] @user Fue promovido a administrador.*';
   conn.sdemote = '*[ ℹ️ ] @user Fue degradado de administrador.*';
