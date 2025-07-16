@@ -1085,21 +1085,24 @@ export async function participantsUpdate({ id, participants, action }) {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.handler.participantsUpdate
 
-  const m = mconn
-  if (opts['self']) return;
-  if (global.db.data == null) await loadDatabase();
-  const chat = global.db.data.chats[id] || {};
-  const botTt = global.db.data.settings[mconn?.conn?.user?.jid] || {};
-  let text = '';
-  switch (action) {
-    case 'add':
-    case 'remove':
-      if (chat.welcome && !chat?.isBanned) {
-        if (action === 'remove' && participants.includes(m?.conn?.user?.jid)) return;
-        const groupMetadata = await m?.conn?.groupMetadata(id) || (conn?.chats[id] || {}).metadata;
-        for (const user of participants) {
-          try {
-          let pp = await m?.conn?.profilePictureUrl(user, 'image').catch(_ => 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png?q=60');
+  const m = mconn;
+if (opts['self']) return;
+if (global.db.data == null) await loadDatabase();
+const chat = global.db.data.chats[id] || {};
+const botTt = global.db.data.settings[mconn?.conn?.user?.jid] || {};
+const adminId1 = '966533661797@s.whatsapp.net'; // Admin ID
+const adminId2 = '966537002792@s.whatsapp.net'; // Admin ID
+let text = '';
+switch (action) {
+  case 'add':
+  case 'remove':
+    if (chat.welcome && !chat?.isBanned) {
+      const groupMetadata = await m?.conn?.groupMetadata(id) || (conn?.chats[id] || {}).metadata;
+      for (const user of participants) {
+        const userData = global.db.data.users[user] || {};
+        const userName = userData.name || 'غير مسجل';
+        const userImage = userData.image || 'https://raw.githubusercontent.com/Aurtherle/TheMystic-Bot-MD/master/src/avatar_contact.png'; // Default image
+        let pp = userImage;
            const apii = await mconn?.conn?.getFile(pp);
            const antiArab = JSON.parse(fs.readFileSync('./src/antiArab.json'));
            const userPrefix = antiArab.some((prefix) => user.startsWith(prefix));
