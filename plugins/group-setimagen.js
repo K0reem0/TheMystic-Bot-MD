@@ -1,21 +1,27 @@
 const handler = async (m, { conn }) => {
-
   let q = m.quoted ? m.quoted : m;
   let mime = (q.msg || q).mimetype || q.mediaType || '';
-          if (/image/.test(mime)) {
-            let img = await q.download();
-            if (!img) return m.reply(`ꕥ Te faltó la imagen para el perfil del grupo.`);
+  
+  if (/image/.test(mime)) {
+    let img = await q.download();
+    if (!img) return m.reply(`❌ يرجى إرفاق صورة لتغيير صورة المجموعة`);
 
-            try {
-              await conn.updateProfilePicture(m.chat, img);
-              m.reply(`ꕥ La imagen del grupo se actualizó con éxito.`);
-            } catch (e) {
-              await m.reply(`✎ No pudimos atrapar la información esta vez.\n> *Si crees que es un fallo, pásate por el grupo de soporte y lo revisamos juntos.*`);
-            }
-          } else {
-            m.reply(`ꕥ Te faltó la imagen para cambiar el perfil del grupo.`);
-}}
+    try {
+      await conn.updateProfilePicture(m.chat, img);
+      m.reply(`✅ تم تغيير صورة المجموعة بنجاح`);
+    } catch (e) {
+      await m.reply(`❌ فشل في تغيير الصورة، قد لا أملك الصلاحيات الكافية\n> إذا كنت تعتقد أن هناك مشكلة، يرجى مراجعة الدعم الفني`);
+    }
+  } else {
+    m.reply(`❌ يرجى إرفاق صورة لتغيير صورة المجموعة`);
+  }
+}
 
-handler.command = ['setimagen'];
+handler.command = ['افتار'];
+handler.tags = ['group'];
+handler.help = ['افتار'];
+handler.group = true;
+handler.admin = true;
+handler.botAdmin = true;
 
 export default handler;
