@@ -1,8 +1,13 @@
 import fetch from 'node-fetch';
 
-const handler = async (m, { conn, command, text, isAdmin }) => {
+let handler = async (m, { conn, args, usedPrefix, command, text, participants }) => {
+  const user = global.db.data.users[m.sender];
+  const isAdmin = participants?.some(p => p.jid === m.sender && p.admin);
+
     if (command === 'كتم') {
-        if (!isAdmin) throw "للمشرفين فقط 👑";
+        if (!isAdmin && !user.mutorol) {
+    return m.reply(`❌ ليس لديك صلاحية استخدام أمر كتم.\n🛒 يمكنك شراء هذه الميزة من المتجر باستخدام:\n${usedPrefix}شراء كتم`);
+        }
 
         const groupMetadata = await conn.groupMetadata(m.chat);
         const groupOwner = groupMetadata.owner || m.chat.split('-')[0] + '@s.whatsapp.net';
@@ -24,9 +29,13 @@ const handler = async (m, { conn, command, text, isAdmin }) => {
 
         // Check if already muted
         if (global.db.data.users[target].muto) throw "سكتنا البثر ذا 🔇";
+        if (!isAdmin) user.mutorol = false; // إزالة الصلاحية بعد الاستخدام
 
-        // Set muto to true
-        global.db.data.users[target].muto = true;
+        // Set muto to true with timestamp
+        global.db.data.users[target].muto = {
+            status: true,
+            timestamp: Date.now()
+        };
 
         // Mute notification
         const muteNotification = {
@@ -41,7 +50,29 @@ const handler = async (m, { conn, command, text, isAdmin }) => {
             participant: '0@s.whatsapp.net',
         };
 
-        conn.reply(m.chat, "النشبه ذا اشغلنا اسكت 🔇", muteNotification, null, { mentions: [target] });
+        conn.reply(m.chat, "النشبه ذا اشغلنا اسكت 🔇 (لمدة دقيقتين)", muteNotification, null, { mentions: [target] });
+
+        // Set timeout to automatically unmute after 2 minutes (120000 milliseconds)
+        setTimeout(async () => {
+            if (global.db.data.users[target]?.muto?.status) {
+                global.db.data.users[target].muto = { status: false };
+                
+                // Unmute notification
+                const unmuteNotification = {
+                    key: { participants: '0@s.whatsapp.net', fromMe: false, id: 'auto-unmute-notif' },
+                    message: {
+                        locationMessage: {
+                            name: 'انتهى الكتم تلقائياً',
+                            jpegThumbnail: await (await fetch('https://telegra.ph/file/aea704d0b242b8c41bf15.png')).buffer(),
+                            vcard: null,
+                        },
+                    },
+                    participant: '0@s.whatsapp.net',
+                };
+                
+                conn.reply(m.chat, `انتهى كتم @${target.split('@')[0]} تلقائياً بعد دقيقتين 🔊`, unmuteNotification, null, { mentions: [target] });
+            }
+        }, 120000);
     }
 
     if (command === 'لكتم') {
@@ -57,17 +88,17 @@ const handler = async (m, { conn, command, text, isAdmin }) => {
 
         // Ensure user entry exists in database
         if (!global.db.data.users[target]) {
-            global.db.data.users[target] = { muto: false };
+            global.db.data.users[target] = { muto: { status: false } };
         }
 
         // Check if already unmuted
-        if (!global.db.data.users[target].muto) {
+        if (!global.db.data.users[target].muto?.status) {
             conn.reply(m.chat, "هذا مب مكتوم", m);
             return;
         }
 
         // Set muto to false
-        global.db.data.users[target].muto = false;
+        global.db.data.users[target].muto = { status: false };
 
         // Unmute notification
         const unmuteNotification = {
@@ -91,7 +122,14 @@ handler.all = async function (m) {
     const sender = m.sender || m.key.participant || m.key.remoteJid;
 
     // Check if the sender is muted
-    if (global.db.data.users[sender]?.muto) {
+    if (global.db.data.users[sender]?.muto?.status) {
+        // Check if mute has expired (2 minutes)
+        const muteTime = global.db.data.users[sender].muto.timestamp;
+        if (Date.now() - muteTime > 120000) {
+            global.db.data.users[sender].muto = { status: false };
+            return;
+        }
+        
         // If muted, delete the message
         await this.sendMessage(m.chat, { delete: m.key });
     }
@@ -100,7 +138,6 @@ handler.all = async function (m) {
 // Command aliases and properties
 handler.command = /^(كتم|لكتم)$/i;
 handler.group = true;
-handler.admin = true;
 handler.botAdmin = true;
 
 export default handler;
