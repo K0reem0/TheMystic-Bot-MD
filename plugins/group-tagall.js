@@ -1,6 +1,8 @@
 let handler = async (m, { conn, participants }) => {
   if (m.chat.endsWith('120363400371988493@g.us')) {
-    // نجهز البداية العامة
+    // جلب قائمة المشطوفين من قاعدة البيانات
+    const excludedMembers = global.db.data.excludedMembers || [];
+    
     let teks = "*❃ ─────────⊰ ❀ ⊱───────── ❃*\n\n" +  
                "*مـنشــــــن عـــــــــام لأعــــــضاء ومشرفـــين*\n" +  
                "*✦╎『 ‏𝐒𝐏𝐀𝐑𝐓𝐀 𓆩🛡️𓆪 𝐊𝐈𝐍𝐆𝐃𝐎𝐌』╎✦*\n" +  
@@ -17,8 +19,13 @@ let handler = async (m, { conn, participants }) => {
       }
     });
 
+    // تصفية الأعضاء المستثنين
+    const filteredParticipants = participants.filter(mem => 
+      !excludedMembers.includes(mem.jid)
+    );
+
     // ترتيب حسب الاسم
-    participants.sort((a, b) => {
+    filteredParticipants.sort((a, b) => {
       let userA = global.db.data.users[a.jid] || { registered: false, name: "غير مسجل ⚠️" };
       let userB = global.db.data.users[b.jid] || { registered: false, name: "غير مسجل ⚠️" };
       return userA.name.localeCompare(userB.name, 'ar', { sensitivity: 'base' });
@@ -29,14 +36,13 @@ let handler = async (m, { conn, participants }) => {
     let foundRegistered = false;
     let unregisteredList = [];
 
-    for (let mem of participants) {
+    for (let mem of filteredParticipants) {
       let user = global.db.data.users[mem.jid] || { registered: false, name: "غير مسجل ⚠️" };
 
       if (user.registered) {
         foundRegistered = true;
         let firstLetter = user.name.charAt(0);
 
-        // أول حرف يظهر نستخدمه بدل "هنا"
         if (!firstLetterUsed) {
           firstLetterUsed = firstLetter;
           teks += `*❃ ─────────⊰ ${firstLetter} ⊱───────── ❃*\n\n`;
@@ -53,7 +59,6 @@ let handler = async (m, { conn, participants }) => {
     }
 
     if (!foundRegistered) {
-      // ما في ولا واحد مسجل، نستبدل "هنا" بـ ⚠️ مباشرة
       teks += "*❃ ─────────⊰ ⚠️ ⊱───────── ❃*\n\n";
     }
 
@@ -66,7 +71,10 @@ let handler = async (m, { conn, participants }) => {
 
     teks += "\n*❃ ─────────⊰ ❀ ⊱───────── ❃*";
 
-    conn.sendMessage(m.chat, { text: teks, mentions: participants.map(a => a.jid) });
+    conn.sendMessage(m.chat, { 
+      text: teks, 
+      mentions: filteredParticipants.map(a => a.jid) 
+    });
   }
 };
 
