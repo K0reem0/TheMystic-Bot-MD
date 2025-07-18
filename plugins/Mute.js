@@ -1,17 +1,17 @@
 import fetch from 'node-fetch';
 
-const handler = async (message, { conn, command, text, isAdmin }) => {
+const handler = async (m, { conn, command, text, isAdmin }) => {
     if (command === 'كتم') {
         if (!isAdmin) throw "للمشرفين فقط 👑";
 
-        const groupMetadata = await conn.groupMetadata(message.chat);
-        const groupOwner = groupMetadata.owner || message.chat.split('-')[0] + '@s.whatsapp.net';
+        const groupMetadata = await conn.groupMetadata(m.chat);
+        const groupOwner = groupMetadata.owner || m.chat.split('-')[0] + '@s.whatsapp.net';
 
-        if (message.mentionedJid?.[0] === groupOwner) throw "تخسي تكتم هنودي";
+        if (m.mentionedJid?.[0] === groupOwner) throw "تخسي تكتم ولومي";
 
-        let target = message.mentionedJid?.[0] || message.quoted?.sender || text;
+        let target = m.mentionedJid?.[0] ?? (m.quoted ? await m.quoted.sender : m.sender);
         if (!target) {
-            conn.reply(message.chat, "منشن الي تبي تسكته 👤", message);
+            conn.reply(m.chat, "منشن الي تبي تسكته 👤", m);
             return;
         }
 
@@ -41,19 +41,19 @@ const handler = async (message, { conn, command, text, isAdmin }) => {
             participant: '0@s.whatsapp.net',
         };
 
-        conn.reply(message.chat, "النشبه ذا اشغلنا اسكت 🔇", muteNotification, null, { mentions: [target] });
+        conn.reply(m.chat, "النشبه ذا اشغلنا اسكت 🔇", muteNotification, null, { mentions: [target] });
     }
 
     if (command === 'لكتم') {
         if (!isAdmin) throw "للمشرفين فقط 👑";
 
-        let target = message.mentionedJid?.[0] || message.quoted?.sender || text;
+        let target = m.mentionedJid?.[0] ?? (m.quoted ? await m.quoted.sender : m.sender);
         if (!target) {
-            conn.reply(message.chat, "منشن الشخص الي تبي تشيل الكتم عنه 👤", message);
+            conn.reply(m.chat, "منشن الشخص الي تبي تشيل الكتم عنه 👤", m);
             return;
         }
 
-        if (target === message.sender) throw "كلم مشرف يشيل الكتم عنك";
+        if (target === m.sender) throw "كلم مشرف يشيل الكتم عنك";
 
         // Ensure user entry exists in database
         if (!global.db.data.users[target]) {
@@ -62,7 +62,7 @@ const handler = async (message, { conn, command, text, isAdmin }) => {
 
         // Check if already unmuted
         if (!global.db.data.users[target].muto) {
-            conn.reply(message.chat, "هذا مب مكتوم", message);
+            conn.reply(m.chat, "هذا مب مكتوم", m);
             return;
         }
 
@@ -82,7 +82,7 @@ const handler = async (message, { conn, command, text, isAdmin }) => {
             participant: '0@s.whatsapp.net',
         };
 
-        conn.reply(message.chat, "خلاص تعال اشتقنا لسوالفك 😔 🔊", unmuteNotification, null, { mentions: [target] });
+        conn.reply(m.chat, "خلاص تعال اشتقنا لسوالفك 😔 🔊", unmuteNotification, null, { mentions: [target] });
     }
 };
 
