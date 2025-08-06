@@ -1,24 +1,38 @@
-import fetch from 'node-fetch';
-import {JSDOM} from 'jsdom';
-const handler = async (m, {conn, text}) => {
-  conn.reply(m.chat, Object.entries(await stylizeText(text ? text : m.quoted && m.quoted.text ? m.quoted.text : m.text)).map(([name, value]) => `*${name}*\n${value}`).join`\n\n`, m);
-};
-handler.help = ['style'].map((v) => v + ' <text>');
-handler.tags = ['tools'];
-handler.command = /^(style(text)?)$/i;
-handler.exp = 0;
-export default handler;
-
-async function stylizeText(text) {
-  const res = await fetch('http://qaz.wtf/u/convert.cgi?text=' + encodeURIComponent(text));
-  const html = await res.text();
-  const dom = new JSDOM(html);
-  const table = dom.window.document.querySelector('table').children[0].children;
-  const obj = {};
-  for (const tr of table) {
-    const name = tr.querySelector('.aname').innerHTML;
-    const content = tr.children[1].textContent.replace(/^\n/, '').replace(/\n$/, '');
-    obj[name + (obj[name] ? ' Reversed' : '')] = content;
-  }
-  return obj;
+function handler(m, { text }) {
+  let teks = text ? text : m.quoted && m.quoted.text ? m.quoted.text : m.text
+  m.reply(teks.replace(/[a-z]/gi, v => {
+      return { 
+          'a': '𝐀',
+          'b': '𝐁',
+          'c': '𝐂',
+          'd': '𝐃',
+          'e': '𝐄',
+          'f': '𝐅',
+          'g': '𝐆',
+          'h': '𝐇',
+          'i': '𝐈',
+          'j': '𝐉',
+          'k': '𝐊',
+          'l': '𝐋',
+          'm': '𝐌',
+          'n': '𝐍',
+          'o': '𝐎',
+          'p': '𝐏',
+          'q': '𝐐',
+          'r': '𝐑',
+          's': '𝐒',
+          't': '𝐓',
+          'u': '𝐔',
+          'v': '𝐕',
+          'w': '𝐖',
+          'x': '𝐗',
+          'y': '𝐘',
+          'z': '𝐙', 
+      }[v.toLowerCase()] || v
+  }))
 }
+handler.help = ['H A R L E Y']
+handler.tags = ['H A R L E Y']
+handler.command =  /^(زخرفة)$/i
+
+export default handler
