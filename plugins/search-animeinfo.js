@@ -9,18 +9,18 @@ const handler = async (m, {conn, text, usedPrefix}) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.buscador_animeinfo
 
-  if (!text) return m.reply(`*${tradutor.texto1}*`);
+  if (!text) return m.reply(`*ادخل اسم الأنمي الذي تبحث عنه*`);
   try {
     const anime = await client.searchAnime(text);
     const result = anime.data[0];
-    const resultes = await translate(`${result.background}`, {to: 'es', autoCorrect: true});
-    const resultes2 = await translate(`${result.synopsis}`, {to: 'es', autoCorrect: true});
+    const resultes = await translate(`${result.background}`, {to: 'ar', autoCorrect: true});
+    const resultes2 = await translate(`${result.synopsis}`, {to: 'ar', autoCorrect: true});
     const AnimeInfo = `
-${tradutor.texto2[0]} ${result.title}
-${tradutor.texto2[1]}* ${result.type}
+${tradutor.texto2[0]}* ${result.title}
+${tradutor.texto2[1]} ${result.type}
 ${tradutor.texto2[2]} ${result.status.toUpperCase().replace(/\_/g, ' ')}
 ${tradutor.texto2[3]} ${result.episodes}
-${tradutor.texto2[4]} ${result.duration}*
+${tradutor.texto2[4]} ${result.duration}
 ${tradutor.texto2[5]} ${result.source.toUpperCase()}
 ${tradutor.texto2[6]} ${result.aired.from}
 ${tradutor.texto2[7]} ${result.aired.to}
@@ -37,5 +37,5 @@ ${tradutor.texto2[15]} ${resultes2.text}`;
     throw `${tradutor.texto3}`;
   }
 };
-handler.command = /^(anime|animeinfo)$/i;
+handler.command = /^(anime|انمي)$/i;
 export default handler;
