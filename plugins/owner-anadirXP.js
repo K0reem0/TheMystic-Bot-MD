@@ -1,31 +1,33 @@
-import MessageType from "baileys";
+//import db from '../lib/database.js'
 
-const pajak = 0;
-const handler = async (m, {conn, text}) => {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.onwer_anadirXP
-
+let handler = async (m, { conn, text }) => {
   let who;
-  if (m.isGroup) who = m.mentionedJid[0];
-  else who = m.chat;
-  if (!who) throw tradutor.texto1;
-  const txt = text.replace('@' + who.split`@`[0], '').trim();
-  if (!txt) throw tradutor.texto2;
-  if (isNaN(txt)) throw tradutor.texto3;
-  const xp = parseInt(txt);
-  let exp = xp;
-  const pjk = Math.ceil(xp * pajak);
-  exp += pjk;
-  if (exp < 1) throw tradutor.texto4;
-  const users = global.db.data.users;
-  users[who].exp += xp;
-  m.reply(`≡ ${tradutor.texto5[0]}
+  if (m.isGroup) {
+    who = m.mentionedJid?.[0] ? m.mentionedJid[0] : await m?.quoted?.sender;
+  } else {
+    who = m.chat;
+  }
+  if (!who) throw '✳️ منشن المستخدم'
+  let txt = text.replace('@' + who.split`@`[0], '').trim()
+  if (!txt) throw '✳️ كم العدد'
+  if (isNaN(txt)) throw ' 🔢 ارقام فقط'
+  let xp = parseInt(txt)
+  let exp = xp
+
+  if (exp < 1) throw '✳️ الحد الأدنى  *1*'
+  let users = global.db.data.users
+  users[who].exp += xp
+
+  await m.reply(`≡ *اضافه اكسبي*
 ┌──────────────
-▢  ${tradutor.texto5[1]} ${xp}
-└──────────────`);
-};
-handler.command = ['añadirxp', 'addexp'];
-handler.rowner = true;
-export default handler;
+▢  *إجمالي:* ${xp}
+└──────────────`)
+ conn.fakeReply(m.chat, `▢ لقد حصلت على \n\n *+${xp} اكسبي*`, who, m.text)
+}
+
+handler.help = ['addxp <@user>']
+handler.tags = ['econ']
+handler.command = ['ضيف-اكس-بي'] 
+handler.owner = true
+
+export default handler
