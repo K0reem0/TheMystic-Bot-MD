@@ -665,7 +665,7 @@ export async function handler(chatUpdate) {
     if (opts['nyimak']) {
       return;
     }
-    if (!m.fromMe && opts['self']) {
+    if (!isMods && opts['self']) {
       return;
     }
     if (opts['pconly'] && m.chat.endsWith('g.us')) {
