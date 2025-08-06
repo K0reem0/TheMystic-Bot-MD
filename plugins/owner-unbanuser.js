@@ -1,23 +1,22 @@
+const handler = async (m, { conn, participants, usedPrefix, command }) => {
+ const BANtext = `*منهو الي تبي تفك المنع عنه من البوت*`;
+  
+  if (!m.mentionedJid?.[0] && !m.quoted) {
+    return m.reply(BANtext, m.chat, { mentions: conn.parseMention(BANtext) });
+  }
 
-
-
-const handler = async (m, {conn, text}) => {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.owner_unbanuser
-
-  if (!text) throw tradutor.texto1;
   let who;
-  if (m.isGroup) who = m.mentionedJid[0];
-  else who = m.chat;
-  if (!who) throw tradutor.texto2;
+  if (m.isGroup) {
+    who = m.mentionedJid?.[0] ? m.mentionedJid[0] : await m?.quoted?.sender;
+  } else {
+    who = m.chat;
+  }
+
   const users = global.db.data.users;
   users[who].banned = false;
-  conn.reply(m.chat, tradutor.texto3, m);
+  m.reply('✅ تمت.');
 };
-handler.help = ['unbanuser'];
-handler.tags = ['owner'];
-handler.command = /^unbanuser$/i;
+
+handler.command = /^بان-فك$/i;
 handler.rowner = true;
 export default handler;
