@@ -35,7 +35,7 @@ const isXLink = (text) => {
 
 const isTikTokLink = (text) => {
   if (!text) return false;
-  const tiktokRegex = /https?:\/\/(www\.)?(tiktok\.com|vt\.tiktok\.com)\/[^\s]+/i;
+  const tiktokRegex = /(?:https:?\/{2})?(?:w{3}|vm|vt|t)?\.?tiktok.com\/([^\s&]+)/gi;
   return tiktokRegex.test(text);
 };
 
