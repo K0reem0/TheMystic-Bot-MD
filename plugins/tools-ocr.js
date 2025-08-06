@@ -18,5 +18,5 @@ const handler = async (m, {conn}) => {
     m.reply(json?.ParsedResults?.[0]?.ParsedText);
   } else throw tradutor.texto1;
 };
-handler.command = /^ocr|totexto$/i;
+handler.command = /^استخرج|لنص$/i;
 export default handler;
