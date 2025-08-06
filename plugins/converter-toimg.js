@@ -18,6 +18,6 @@ const handler = async (m, {conn, usedPrefix, command}) => {
 
 handler.help = ['toimg'];
 handler.tags = ['converter'];
-handler.command = ['toimg', 'jpg', 'img'];
+handler.command = ['لصورة', 'لصوره', 'img'];
 
 export default handler;
