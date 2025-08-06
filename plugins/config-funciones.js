@@ -254,13 +254,21 @@ ${tradutor.texto26[3]}`.trim();
       }
       chat.antidelete = isEnable;
       break;
-    case 'public':
+    case 'عام':
       isAll = true;
       if (!isROwner) {
         global.dfail('rowner', m, conn);
         throw false;
       }
       global.opts['self'] = !isEnable;
+      break;
+    case 'خاص':
+      isAll = true;
+      if (!isROwner) {
+        global.dfail('rowner', m, conn);
+        throw false;
+      }
+      global.opts['self'] = isEnable;
       break;
     case 'antilink':
       if (m.isGroup) {
