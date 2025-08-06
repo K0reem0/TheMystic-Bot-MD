@@ -662,6 +662,21 @@ export async function handler(chatUpdate) {
     const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
     const tradutor = _translate.handler.handler
 
+    const isROwner = [...global.owner.map(([number]) => number)].map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
+    const isOwner = isROwner || m.fromMe;
+    const isMods = isROwner || global.mods.map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
+    const isPrems = isROwner || isOwner || isMods || global.db.data.users[m.sender].premiumTime > 0; // || global.db.data.users[m.sender].premium = 'true'
+
+    if (opts['queque'] && m.text && !(isMods || isPrems)) {
+      const queque = this.msgqueque; const time = 1000 * 5;
+      const previousID = queque[queque.length - 1];
+      queque.push(m.id || m.key.id);
+      setInterval(async function () {
+        if (queque.indexOf(previousID) === -1) clearInterval(this);
+        await delay(time);
+      }, time);
+    }
+    
     if (opts['nyimak']) {
       return;
     }
@@ -679,20 +694,6 @@ export async function handler(chatUpdate) {
     }
     if (typeof m.text !== 'string') {
       m.text = '';
-    }
-    const isROwner = [...global.owner.map(([number]) => number)].map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
-    const isOwner = isROwner || m.fromMe;
-    const isMods = isROwner || global.mods.map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
-    const isPrems = isROwner || isOwner || isMods || global.db.data.users[m.sender].premiumTime > 0; // || global.db.data.users[m.sender].premium = 'true'
-
-    if (opts['queque'] && m.text && !(isMods || isPrems)) {
-      const queque = this.msgqueque; const time = 1000 * 5;
-      const previousID = queque[queque.length - 1];
-      queque.push(m.id || m.key.id);
-      setInterval(async function () {
-        if (queque.indexOf(previousID) === -1) clearInterval(this);
-        await delay(time);
-      }, time);
     }
 
     if (m.isBaileys || isBaileysFail && m?.sender === mconn?.conn?.user?.jid) {
