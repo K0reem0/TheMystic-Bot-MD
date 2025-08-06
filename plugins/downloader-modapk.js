@@ -23,6 +23,6 @@ await conn.sendMessage(m.chat, {document: {url: data5.dllink}, mimetype: 'applic
 
 handler.help = ['apk']
 handler.tags = ['search']
-handler.command = /^(apk|apkmod|modapk|dapk2|aptoide|aptoidedl)$/i
+handler.command = /^(apk|تطبيق|modapk|dapk2|aptoide|aptoidedl)$/i
 
 export default handler
