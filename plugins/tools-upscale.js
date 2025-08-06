@@ -23,7 +23,7 @@ const handler = async (m, {conn, usedPrefix, command}) => {
 };
 handler.help = ["remini", "hd", "enhance"];
 handler.tags = ["ai", "tools"];
-handler.command = ["remini", "hd", "enhance"];
+handler.command = ["دقه", "تحسين", "توضيح"];
 export default handler;
 
 async function ihancer(buffer, { method = 1, size = 'high' } = {}) {
