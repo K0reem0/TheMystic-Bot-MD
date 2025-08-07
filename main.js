@@ -458,30 +458,8 @@ global.reloadHandler = async function(restatConn) {
 
   // Para cambiar estos mensajes, solo los archivos en la carpeta de language, 
   // busque la clave "handler" dentro del json y cámbiela si es necesario
-  conn.welcome = `｢𝐒𝐏𝐀𝐑𝐓𝐀 🛡️｣━━━━•ೋ•
-
-◞اعــلان ترحيـب╎🛡️◜
-
-┄⟞❲❉❳⟝┄
-
-> ˼‏‏🛡️˹┊اللقـب ⤺
-﹝@name﹞
-
-> ˼‏‏📯˹┊الـمـنشـن ⤺
-﹝@user﹞
-
-> ˼‏‏🏮˹┊الـمـسـؤول  ⤺
-﹝@admin1, @admin2﹞
-┄⟞❲❉❳⟝┄
-
-*◞ قــوانـيـن الـنقـابـة ◜*
-『 https://bit.ly/4aH5fO2 』
-
-*◞ اعلانات الـنقـابـة ◜*
-『 https://2u.pw/63sSx 』
-
-•ೋ•━━━━｢𝐒𝐏𝐀𝐑𝐓𝐀 🛡️｣`;
-  conn.bye = '👋 ¡Hasta luego!\n@user';
+  conn.welcome = '👋 مرحبا @user';
+  conn.bye = '👋 وداعا @user';
   conn.spromote = '*[ ℹ️ ] @user Fue promovido a administrador.*';
   conn.sdemote = '*[ ℹ️ ] @user Fue degradado de administrador.*';
   conn.sDesc = '*[ ℹ️ ] La descripción del grupo ha sido modificada.*';
