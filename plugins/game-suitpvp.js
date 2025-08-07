@@ -1,48 +1,69 @@
-const timeout = 60000;
-const poin = 500;
-const poin_lose = -100;
-const poin_bot = 200;
+const handler = async (m, {conn, text, command, usedPrefix, args}) => {
+// let pp = 'https://www.bighero6challenge.com/images/thumbs/Piedra,-papel-o-tijera-0003318_1584.jpeg'
+  const pp = 'https://telegra.ph/file/c7924bf0e0d839290cc51.jpg';
 
-const handler = async (m, { conn, usedPrefix, text }) => {
-  conn.suit = conn.suit || {};
+  // 60000 = 1 minuto // 30000 = 30 segundos // 15000 = 15 segundos // 10000 = 10 segundos
+  const time = global.db.data.users[m.sender].wait + 10000;
+  if (new Date - global.db.data.users[m.sender].wait < 10000) throw `*🕓 سوف تضطر للانتظار ${Math.floor((time - new Date()) / 1000)} ثواني قبل أن تتمكن من اللعب مرة أخرى*`;
 
-  // تحقق من أن المستخدم غير مشترك بلعبة حالياً
-  if (Object.values(conn.suit).find(room => room.id.startsWith('suit') && [room.p, room.p2].includes(m.sender))) {
-    throw '❗ أنت بالفعل داخل لعبة حجر ورقة مقص.';
+  if (!args[0]) return conn.reply(m.chat, `*حجر 🗿 ورق 📄 مقص ✂️*\n\n*—◉ يمكنك استخدام هذه الأوامر:*\n*◉ ${usedPrefix + command} حجر*\n*◉ ${usedPrefix + command} ورق*\n*◉ ${usedPrefix + command} مقص*`, m);
+  // conn.sendButton(m.chat, `*حجر 🗿 ورق 📄 مقص ✂️*\n\n*—◉  يمكنك استخدام الأزرار للعب أو يمكنك أيضًا استخدام هذه الأوامر:*\n*◉ ${usedPrefix + command} حجر*\n*◉ ${usedPrefix + command} ورق*\n*◉ ${usedPrefix + command} مقص*`, wm, pp, [['حجر 🗿', `${usedPrefix + command} حجر`], ['ورق 📄', `${usedPrefix + command} ورق`], ['مقص ✂️', `${usedPrefix + command} مقص`]], m)
+  let astro = Math.random();
+  if (astro < 0.34) {
+    astro = 'حجر';
+  } else if (astro > 0.34 && astro < 0.67) {
+    astro = 'مقص';
+  } else {
+    astro = 'ورق';
   }
-
-  const textquien = `👤 من تريد أن تتحدى؟\nاستخدم: ${usedPrefix}suit @اسم_العضو`;
-  if (!m.mentionedJid[0]) return m.reply(textquien, m.chat, { mentions: conn.parseMention(textquien) });
-
-  // تحقق من أن المستخدم المذكور ليس مشغولاً بلعبة أخرى
-  if (Object.values(conn.suit).find(room => room.id.startsWith('suit') && [room.p, room.p2].includes(m.mentionedJid[0]))) {
-    throw '⚠️ الشخص الذي تريد تحديه مشغول في لعبة أخرى!';
+  const textm = text.toLowerCase();
+  if (textm == astro) {
+    global.db.data.users[m.sender].exp += 500;
+    m.reply(`*🔰 تعادل!*\n\n*👉🏻 انت: ${textm}*\n*👉🏻 البوت: ${astro}*\n*🎁 حصلت على +500 XP*`);
+  } else if (text == 'ورق') {
+    if (astro == 'حجر') {
+      global.db.data.users[m.sender].exp += 1000;
+      m.reply(`*🥳 لقد فزت! 🎉*\n\n*👉🏻 انت: ${textm}*\n*👉🏻 البوت: ${astro}*\n*🎁 حصلت على +1000 XP*`);
+    } else {
+      global.db.data.users[m.sender].exp -= 300;
+      m.reply(`*☠️ انت تخسر! ❌*\n\n*👉🏻 انت: ${textm}*\n*👉🏻 البوت: ${astro}*\n*❌ تم خصم -300 XP*`);
+    }
+  } else if (text == 'مقص') {
+    if (astro == 'ورق') {
+      global.db.data.users[m.sender].exp += 1000;
+      m.reply(`*🥳 لقد فزت! 🎉*\n\n*👉🏻 انت: ${textm}*\n*👉🏻 البوت: ${astro}*\n*🎁 حصلت على +1000 XP*`);
+    } else {
+      global.db.data.users[m.sender].exp -= 300;
+      m.reply(`*☠️ انت تخسر! ❌*\n\n*👉🏻 انت: ${textm}*\n*👉🏻 البوت: ${astro}*\n*❌ تم خصم -300 XP*`);
+    }
+  } else if (textm == 'مقص') {
+    if (astro == 'ورق') {
+      global.db.data.users[m.sender].exp += 1000;
+      m.reply(`*🥳 لقد فزت! 🎉*\n\n*👉🏻 انت: ${textm}*\n*👉🏻 البوت: ${astro}*\n*🎁 حصلت على +1000 XP*`);
+    } else {
+      global.db.data.users[m.sender].exp -= 300;
+      m.reply(`*☠️ انت تخسر! ❌*\n\n*👉🏻 انت: ${textm}*\n*👉🏻 البوت: ${astro}*\n*❌ تم خصم -300 XP*`);
+    }
+  } else if (textm == 'ورق') {
+    if (astro == 'حجر') {
+      global.db.data.users[m.sender].exp += 1000;
+      m.reply(`*🥳 لقد فزت! 🎉*\n\n*👉🏻 انت: ${textm}*\n*👉🏻 البوت: ${astro}*\n*🎁 حصلت على +1000 XP*`);
+    } else {
+      global.db.data.users[m.sender].exp -= 300;
+      m.reply(`*☠️ انت تخسر! ❌*\n\n*👉🏻 انت: ${textm}*\n*👉🏻 البوت: ${astro}*\n*❌ تم خصم -300 XP*`);
+    }
+  } else if (textm == 'حجر') {
+    if (astro == 'مقص') {
+      global.db.data.users[m.sender].exp += 1000;
+      m.reply(`*🥳 لقد فزت! 🎉*\n\n*👉🏻 انت: ${textm}*\n*👉🏻 البوت: ${astro}*\n*🎁 حصلت على +1000 XP*`);
+    } else {
+      global.db.data.users[m.sender].exp -= 300;
+      m.reply(`*☠️ انت تخسر! ❌*\n\n*👉🏻 انت: ${textm}*\n*👉🏻 البوت: ${astro}*\n*❌ تم خصم -300 XP*`);
+    }
   }
-
-  const id = 'suit_' + new Date() * 1;
-  const caption = `🎮 تحدي جديد!\n\n@${m.sender.split('@')[0]} تحدى @${m.mentionedJid[0].split('@')[0]} في لعبة حجر ✊ ورقة ✋ مقص ✌️!\n\n💬 انتظر القبول...`;
-
-  conn.suit[id] = {
-    chat: await conn.sendMessage(m.chat, { text: caption }, { mentions: await conn.parseMention(caption) }),
-    id: id,
-    p: m.sender,
-    p2: m.mentionedJid[0],
-    status: 'wait',
-    waktu: setTimeout(() => {
-      if (conn.suit[id]) {
-        conn.reply(m.chat, '⏱️ انتهى الوقت، تم إلغاء التحدي لعدم الرد.', m);
-        delete conn.suit[id];
-      }
-    }, timeout),
-    poin,
-    poin_lose,
-    poin_bot,
-    timeout,
-  };
+  global.db.data.users[m.sender].wait = new Date * 1;
 };
-
-handler.command = /^تحدي|suit(pvp)?$/i;
-handler.group = true;
-handler.game = true;
-
+handler.help = ['ppt'];
+handler.tags = ['games'];
+handler.command = /^(تحدي)$/i;
 export default handler;
