@@ -28,7 +28,7 @@ let handler = async (m, { conn }) => {
 
 *❃ ────────⊰ ❀ ⊱──────── ❃*`
 
-    let imgUrl = 'https://files.catbox.moe/hbvmml.jpg'
+    let imgUrl = 'https://files.catbox.moe/yjj0x6.jpg'
 
     try {
         await conn.sendMessage(m.chat, { 
