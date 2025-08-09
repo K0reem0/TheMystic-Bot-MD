@@ -662,25 +662,10 @@ export async function handler(chatUpdate) {
     const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
     const tradutor = _translate.handler.handler
 
-    const isROwner = [...global.owner.map(([number]) => number)].map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
-    const isOwner = isROwner || m.fromMe;
-    const isMods = isROwner || global.mods.map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
-    const isPrems = isROwner || isOwner || isMods || global.db.data.users[m.sender].premiumTime > 0; // || global.db.data.users[m.sender].premium = 'true'
-
-    if (opts['queque'] && m.text && !(isMods || isPrems)) {
-      const queque = this.msgqueque; const time = 1000 * 5;
-      const previousID = queque[queque.length - 1];
-      queque.push(m.id || m.key.id);
-      setInterval(async function () {
-        if (queque.indexOf(previousID) === -1) clearInterval(this);
-        await delay(time);
-      }, time);
-    }
-    
     if (opts['nyimak']) {
       return;
     }
-    if (!isMods && opts['self']) {
+    if (!m.fromMe && opts['self']) {
       return;
     }
     if (opts['pconly'] && m.chat.endsWith('g.us')) {
@@ -694,6 +679,20 @@ export async function handler(chatUpdate) {
     }
     if (typeof m.text !== 'string') {
       m.text = '';
+    }
+    const isROwner = [...global.owner.map(([number]) => number)].map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
+    const isOwner = isROwner || m.fromMe;
+    const isMods = isOwner || global.mods.map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
+    const isPrems = isROwner || isOwner || isMods || global.db.data.users[m.sender].premiumTime > 0; // || global.db.data.users[m.sender].premium = 'true'
+
+    if (opts['queque'] && m.text && !(isMods || isPrems)) {
+      const queque = this.msgqueque; const time = 1000 * 5;
+      const previousID = queque[queque.length - 1];
+      queque.push(m.id || m.key.id);
+      setInterval(async function () {
+        if (queque.indexOf(previousID) === -1) clearInterval(this);
+        await delay(time);
+      }, time);
     }
 
     if (m.isBaileys || isBaileysFail && m?.sender === mconn?.conn?.user?.jid) {
@@ -989,7 +988,7 @@ ${tradutor.texto1[1]} ${messageNumber}/3
                 }
               }*/
               const md5c = fs.readFileSync('./plugins/' + m.plugin);
-              fetch('https://themysticbot.cloud:2083/error', {
+              /*fetch('https://themysticbot.cloud:2083/error', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ number: conn.user.jid, plugin: m.plugin, command: `${usedPrefix}${command} ${args.join(' ')}`, reason: text, md5: mddd5(md5c) }),
@@ -997,7 +996,7 @@ ${tradutor.texto1[1]} ${messageNumber}/3
                 console.log(json);
               }).catch((err) => {
                 console.error(err);
-              });
+              });*/
             }
             await m.reply(text);
           }
