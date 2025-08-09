@@ -704,9 +704,10 @@ export async function handler(chatUpdate) {
 
     let usedPrefix;
     const _user = global.db.data && global.db.data.users && global.db.data.users[m.sender];
-
-    const groupMetadata = (m.isGroup ? ((conn.chats[m.chat] || {}).metadata || await this.groupMetadata(m.chat).catch((_) => null)) : {}) || {};
-    const participants = (m.isGroup ? groupMetadata.participants : []) || [];
+    const groupMetadata = m.isGroup ? { ...(conn.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}), ...(((conn.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants) && { participants: ((conn.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants || []).map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid })) }) } : {};
+    //const groupMetadata = (m.isGroup ? ((conn.chats[m.chat] || {}).metadata || await this.groupMetadata(m.chat).catch((_) => null)) : {}) || {};
+    const participants = ((m.isGroup ? groupMetadata.participants : []) || []).map(participant => ({ id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin }));
+    //const participants = (m.isGroup ? groupMetadata.participants : []) || [];
     const user = (m.isGroup ? participants.find((u) => conn.decodeJid(u.jid) === m.sender) : {}) || {}; // User Data
     const bot = (m.isGroup ? participants.find((u) => conn.decodeJid(u.jid) == this.user.jid) : {}) || {}; // Your Data
     const isRAdmin = user?.admin == 'superadmin' || false;
@@ -1086,41 +1087,28 @@ export async function participantsUpdate({ id, participants, action }) {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.handler.participantsUpdate
 
-  const m = mconn;
-if (opts['self']) return;
-if (global.db.data == null) await loadDatabase();
-const chat = global.db.data.chats[id] || {};
-const botTt = global.db.data.settings[mconn?.conn?.user?.jid] || {};
-const adminId1 = '966533661797@s.whatsapp.net'; // Admin ID
-const adminId2 = '966537002792@s.whatsapp.net'; // Admin ID
-let text = '';
-switch (action) {
-  case 'add':
-  case 'remove':
-    if (chat.welcome && !chat?.isBanned) {
-      const groupMetadata = await m?.conn?.groupMetadata(id) || (conn?.chats[id] || {}).metadata;
-      for (const user of participants) {
-        const userData = global.db.data.users[user] || {};
-        const userName = userData.name || 'غير مسجل';
-        const userImage = userData.image || 'https://raw.githubusercontent.com/Aurtherle/TheMystic-Bot-MD/master/src/avatar_contact.png'; // Default image
-        let pp = userImage;
-        try {
-          const apii = await mconn?.conn?.getFile(pp);
-          const antiArab = JSON.parse(fs.readFileSync('./src/antiArab.json'));
-          const userPrefix = antiArab.some((prefix) => user.startsWith(prefix));
-          const botTt2 = groupMetadata?.participants?.find((u) => m?.conn?.decodeJid(u.id) == m?.conn?.user?.jid) || {};
-          const isBotAdminNn = botTt2?.admin === 'admin' || false;
-
-          text = (action === 'add' ? 
-            (chat.sWelcome || conn.welcome || tradutor.texto1 || 'Welcome, @user!')
-              .replace('@subject', await m?.conn?.getName(id))
-              .replace('@desc', groupMetadata?.desc?.toString() || '*𝚂𝙸𝙽 𝙳𝙴𝚂𝙲𝚁𝙸𝙿𝙲𝙸𝙾𝙽*')
-              .replace('@user', '@' + user.split('@')[0])
-              .replace('@name', userName)
-              .replace('@admin1', '@' + adminId1.split('@')[0])
-              .replace('@admin2', '@' + adminId2.split('@')[0]) :
-            (chat.sBye || tradutor.texto2 || conn.bye || 'Bye, @user!'))
-            .replace('@user', '@' + user.split('@')[0]);
+  const m = mconn
+  if (opts['self']) return;
+  if (global.db.data == null) await loadDatabase();
+  const chat = global.db.data.chats[id] || {};
+  const botTt = global.db.data.settings[mconn?.conn?.user?.jid] || {};
+  let text = '';
+  switch (action) {
+    case 'add':
+    case 'remove':
+      if (chat.welcome && !chat?.isBanned) {
+        if (action === 'remove' && participants.includes(m?.conn?.user?.jid)) return;
+        const groupMetadata = await m?.conn?.groupMetadata(id) || (conn?.chats[id] || {}).metadata;
+        for (const user of participants) {
+          try {
+          let pp = await m?.conn?.profilePictureUrl(user, 'image').catch(_ => 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png?q=60');
+           const apii = await mconn?.conn?.getFile(pp);
+           const antiArab = JSON.parse(fs.readFileSync('./src/antiArab.json'));
+           const userPrefix = antiArab.some((prefix) => user.startsWith(prefix));
+           const botTt2 = groupMetadata?.participants?.find((u) => m?.conn?.decodeJid(u.id) == m?.conn?.user?.jid) || {};
+           const isBotAdminNn = botTt2?.admin === 'admin' || false;
+           text = (action === 'add' ? (chat.sWelcome || tradutor.texto1 || conn.welcome || 'Welcome, @user!').replace('@subject', await m?.conn?.getName(id)).replace('@desc', groupMetadata?.desc?.toString() || '*𝚂𝙸𝙽 𝙳𝙴𝚂𝙲𝚁𝙸𝙿𝙲𝙸𝙾𝙽*').replace('@user', '@' + user.split('@')[0]) :
+            (chat.sBye || tradutor.texto2 || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0]);
             if (userPrefix && chat.antiArab && botTt.restrict && isBotAdminNn && action === 'add') {
            const responseb = await m.conn.groupParticipantsUpdate(id, [user], 'remove');
             if (responseb[0].status === '404') return;
@@ -1128,7 +1116,7 @@ switch (action) {
            await m?.conn?.sendMessage(id, { text: `*[❗] @${user.split('@')[0]} ᴇɴ ᴇsᴛᴇ ɢʀᴜᴘᴏ ɴᴏ sᴇ ᴘᴇʀᴍɪᴛᴇɴ ɴᴜᴍᴇʀᴏs ᴀʀᴀʙᴇs ᴏ ʀᴀʀᴏs, ᴘᴏʀ ʟᴏ ϙᴜᴇ sᴇ ᴛᴇ sᴀᴄᴀʀᴀ ᴅᴇʟ ɢʀᴜᴘᴏ*`, mentions: [user] }, { quoted: fkontak2 });
            return;
             }
-            await m?.conn?.sendFile(id, apii.data, 'pp.jpg', text, null, false, { mentions: [user, adminId1, adminId2] });
+            await m?.conn?.sendFile(id, apii.data, 'pp.jpg', text, null, false, { mentions: [user] });
           } catch (e) {
           console.log(e);
           }
