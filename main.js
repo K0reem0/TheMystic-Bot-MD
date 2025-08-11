@@ -16,6 +16,7 @@ import pino from 'pino';
 import Pino from 'pino';
 import { Boom } from '@hapi/boom';
 import { makeWASocket, protoType, serialize } from './src/libraries/simple.js';
+import { MongoDB } from './src/libraries/mongoDB.js'
 import { initializeSubBots } from './src/libraries/subBotManager.js';
 import { Low, JSONFile } from 'lowdb';
 import store from './src/libraries/store.js';
