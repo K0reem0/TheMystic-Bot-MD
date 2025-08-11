@@ -633,30 +633,52 @@ export async function handler(chatUpdate) {
           }
         }
       }
-      const settings = global.db.data.settings[this.user.jid];
-      if (typeof settings !== 'object') global.db.data.settings[this.user.jid] = {};
-      if (settings) {
-       const setttings = { // yk the drill 
-          self: false,
-          autoread: false,
-          autoread2: false,
-          restrict: false,
-          antiCall: false,
-          antiPrivate: false,
-          modejadibot: true,
-          antispam: false,
-          audios_bot: true,
-          modoia: false
-        };
-        for (const setting in settings) {
-          if (settings[setting] === undefined || !settings.hasOwnProperty(setting)) {
-            settings[setting] = setttings[setting] ?? {} // ctrl + v moment
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
+      let settings = global.db.data.settings[this.user.jid]
+if (typeof settings !== 'object') global.db.data.settings[this.user.jid] = {}
+if (settings) {
+if (!('self' in settings)) settings.self = false
+if (!('autoread' in settings)) settings.autoread = false
+if (!('autoread2' in settings)) settings.autoread2 = false
+if (!('restrict' in settings)) settings.restrict = false
+if (!('temporal' in settings)) settings.temporal = false
+if (!('anticommand' in settings)) settings.anticommand = false
+if (!('antiPrivate' in settings)) settings.antiPrivate = false
+if (!('antiCall' in settings)) settings.antiCall = true
+if (!('antiSpam' in settings)) settings.antiSpam = true 
+if (!('modoia' in settings)) settings.modoia = false
+if (!('jadibotmd' in settings)) settings.jadibotmd = true 
+if (!('prefix' in settings)) settings.prefix = opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@';
+} else global.db.data.settings[this.user.jid] = {
+self: false,
+autoread: false,
+autoread2: false,
+restrict: false,
+temporal: false,
+antiPrivate: false,
+antiCall: true,
+antiSpam: true,
+modoia: false, 
+anticommand: false, 
+prefix: opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@',
+jadibotmd: true,
+}} catch (e) {
+console.error(e)
     }
+
+    var settings = global.db.data.settings[this.user.jid];
+let prefix;
+const defaultPrefix = '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@'; // Valor por defecto
+if (settings.prefix) {
+if (settings.prefix.includes(',')) {
+const prefixes = settings.prefix.split(',').map(p => p.trim());
+prefix = new RegExp('^(' + prefixes.map(p => p.replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&')).join('|') + ')');
+} else if (settings.prefix === defaultPrefix) {
+prefix = new RegExp('^[' + settings.prefix.replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&') + ']');
+} else {
+prefix = new RegExp('^' + settings.prefix.replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&'));
+}} else {
+prefix = new RegExp(''); // Permite comandos sin prefijo
+}
 
     const idioma = global.db.data.users[m.sender]?.language || global.defaultLenguaje; // is null? np the operator ?? fix that (i hope)
     const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
@@ -680,38 +702,36 @@ export async function handler(chatUpdate) {
     if (typeof m.text !== 'string') {
       m.text = '';
     }
-    const isROwner = [...global.owner.map(([number]) => number)].map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
-    const isOwner = isROwner || m.fromMe;
-    const isMods = isOwner || global.mods.map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
-    const isPrems = isROwner || isOwner || isMods || global.db.data.users[m.sender].premiumTime > 0; // || global.db.data.users[m.sender].premium = 'true'
+    const detectwhat = m.sender.includes('@lid') ? '@lid' : '@s.whatsapp.net';
+const isROwner = [...global.owner.map(([number]) => number)].map(v => v.replace(/[^0-9]/g, '') + detectwhat).includes(m.sender)
+const isOwner = isROwner || m.fromMe
+const isMods = isOwner || global.mods.map(v => v.replace(/[^0-9]/g, '') + detectwhat).includes(m.sender)
+//const isPrems = isROwner || global.prems.map(v => v.replace(/[^0-9]/g, '') + detectwhat).includes(m.sender)
+const isPrems = isROwner || global.db.data.users[m.sender].premiumTime > 0
 
-    if (opts['queque'] && m.text && !(isMods || isPrems)) {
-      const queque = this.msgqueque; const time = 1000 * 5;
-      const previousID = queque[queque.length - 1];
-      queque.push(m.id || m.key.id);
-      setInterval(async function () {
-        if (queque.indexOf(previousID) === -1) clearInterval(this);
-        await delay(time);
-      }, time);
-    }
+if (opts['queque'] && m.text && !(isMods || isPrems)) {
+let queque = this.msgqueque, time = 1000 * 5
+const previousID = queque[queque.length - 1]
+queque.push(m.id || m.key.id)
+setInterval(async function () {
+if (queque.indexOf(previousID) === -1) clearInterval(this)
+await delay(time)
+}, time)
+}
 
-    if (m.isBaileys || isBaileysFail && m?.sender === mconn?.conn?.user?.jid) {
-      return;
-    }
+    m.exp += Math.ceil(Math.random() * 10)
+let usedPrefix
+let _user = global.db.data && global.db.data.users && global.db.data.users[m.sender]
 
-    m.exp += Math.ceil(Math.random() * 10);
-
-    let usedPrefix;
-    const _user = global.db.data && global.db.data.users && global.db.data.users[m.sender];
-    const groupMetadata = m.isGroup ? { ...(conn.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}), ...(((conn.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants) && { participants: ((conn.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants || []).map(p => ({ ...p, id: p.jid, jid: p.jid, lid: p.lid })) }) } : {};
-    //const groupMetadata = (m.isGroup ? ((conn.chats[m.chat] || {}).metadata || await this.groupMetadata(m.chat).catch((_) => null)) : {}) || {};
-    const participants = ((m.isGroup ? groupMetadata.participants : []) || []).map(participant => ({ id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin }));
-    //const participants = (m.isGroup ? groupMetadata.participants : []) || [];
-    const user = (m.isGroup ? participants.find((u) => conn.decodeJid(u.jid) === m.sender) : {}) || {}; // User Data
-    const bot = (m.isGroup ? participants.find((u) => conn.decodeJid(u.jid) == this.user.jid) : {}) || {}; // Your Data
-    const isRAdmin = user?.admin == 'superadmin' || false;
-    const isAdmin = isRAdmin || user?.admin == 'admin' || false; // Is User Admin?
-    const isBotAdmin = bot?.admin || false; // Are you Admin?
+const groupMetadata = (m.isGroup ? ((conn.chats[m.chat] || {}).metadata || await this.groupMetadata(m.chat).catch(_ => null)) : {}) || {}
+const participants = (m.isGroup ? groupMetadata.participants : []) || []
+let numBot = (conn.user.lid || '').replace(/:.*/, '') || false
+const detectwhat2 = m.sender.includes('@lid') ? `${numBot}@lid` : conn.user.jid
+const user = (m.isGroup ? participants.find(u => conn.decodeJid(u.id) === m.sender) : {}) || {}
+const bot = (m.isGroup ? participants.find(u => conn.decodeJid(u.id) == detectwhat2) : {}) || {}
+const isRAdmin = user?.admin == 'superadmin' || false
+const isAdmin = isRAdmin || user?.admin == 'admin' || false //user admins? 
+const isBotAdmin = bot?.admin || false //Detecta sin el bot es admin
 
     const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins');
     for (const name in global.plugins) {
