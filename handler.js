@@ -691,7 +691,6 @@ export async function handler(chatUpdate) {
     if (process.env.MODE && process.env.MODE.toLowerCase() === 'private' && !(isROwner || isOwner || isMods)) {
       return;
     }
-    if (m.isBaileysFail) return
     m.exp += Math.ceil(Math.random() * 10);
 
     let usedPrefix;
@@ -700,6 +699,7 @@ export async function handler(chatUpdate) {
     //const groupMetadata = (m.isGroup ? ((conn.chats[m.chat] || {}).metadata || await this.groupMetadata(m.chat).catch((_) => null)) : {}) || {};
     const participants = ((m.isGroup ? groupMetadata.participants : []) || []).map(participant => ({ id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin }));
     //const participants = (m.isGroup ? groupMetadata.participants : []) || [];
+    const isSelfMessage = m?.sender === mconn?.conn?.user?.jid;
     const user = (m.isGroup ? participants.find((u) => conn.decodeJid(u.jid) === m.sender) : {}) || {}; // User Data
     const bot = (m.isGroup ? participants.find((u) => conn.decodeJid(u.jid) == this.user.jid) : {}) || {}; // Your Data
     const isRAdmin = user?.admin == 'superadmin' || false;
@@ -807,6 +807,8 @@ export async function handler(chatUpdate) {
         if (!isAccept) {
           continue;
         }
+        
+        if (m.id.startsWith('EVO') || m.id.startsWith('Lyru-') || (m.id.startsWith('BAE5') && m.id.length === 16) || m.id.startsWith('B24E') || (m.id.startsWith('8SCO') && m.id.length === 20) || m.id.startsWith('FizzxyTheGreat-')) return
 
         m.plugin = name;
         if (m.chat in global.db.data.chats || m.sender in global.db.data.users) {
