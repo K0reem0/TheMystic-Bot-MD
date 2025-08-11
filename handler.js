@@ -637,7 +637,7 @@ export async function handler(chatUpdate) {
       if (typeof settings !== 'object') global.db.data.settings[this.user.jid] = {};
       if (settings) {
        const setttings = { // yk the drill 
-          self: false,
+          self: true,
           autoread: false,
           autoread2: false,
           restrict: false,
@@ -677,8 +677,9 @@ export async function handler(chatUpdate) {
     if (typeof m.text !== 'string') {
       m.text = '';
     }
-    const isROwner = [...global.owner.map(([number]) => number)].map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
-    const isOwner = m.fromMe || isROwner;
+    const botNumber = global.conn.user?.jid || '';
+    const isROwner = [...global.owner.map(([number]) => number)].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender) || m.sender === botNumber;
+    const isOwner = isROwner || m.fromMe;
     const isMods = isOwner || global.mods.map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
     const isPrems = isROwner || isOwner || isMods || global.db.data.users[m.sender].premiumTime > 0; // || global.db.data.users[m.sender].premium = 'true'
 
@@ -694,9 +695,6 @@ export async function handler(chatUpdate) {
 
     if (!isMods && opts['self']) {
       return;
-    }
-    if (m.isBaileys && !isBaileysFail) {
-    return;
     }
 
     m.exp += Math.ceil(Math.random() * 10);
@@ -814,8 +812,6 @@ export async function handler(chatUpdate) {
         if (!isAccept) {
           continue;
         }
-
-       if (m.id.startsWith('EVO') || m.id.startsWith('Lyru-') || (m.id.startsWith('BAE5') && m.id.length === 16) || m.id.startsWith('B24E') || (m.id.startsWith('8SCO') && m.id.length === 20) || m.id.startsWith('FizzxyTheGreat-')) return
 
         m.plugin = name;
         if (m.chat in global.db.data.chats || m.sender in global.db.data.users) {
