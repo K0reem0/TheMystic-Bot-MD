@@ -18,6 +18,7 @@ global.defaultLenguaje = 'es';
 global.owner = [
   ['966560801636', '👑 AURTHER 👑', true],
   ['967778411994'],
+  ['967779416950'],
 ];
 
 global.suittag = ['966560801636'];
