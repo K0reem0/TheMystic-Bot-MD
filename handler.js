@@ -662,9 +662,6 @@ export async function handler(chatUpdate) {
     const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
     const tradutor = _translate.handler.handler
 
-    if (opts['nyimak']) {
-      return;
-    }
     if (opts['pconly'] && m.chat.endsWith('g.us')) {
       return;
     }
@@ -677,8 +674,7 @@ export async function handler(chatUpdate) {
     if (typeof m.text !== 'string') {
       m.text = '';
     }
-    const botNumber = global.conn.user?.jid || '';
-    const isROwner = [...global.owner.map(([number]) => number)].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender) || m.sender === botNumber;
+    const isROwner = [conn.decodeJid(global.conn.user.id),...global.owner.map(([number]) => number),].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
     const isOwner = isROwner || m.fromMe;
     const isMods = isOwner || global.mods.map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
     const isPrems = isROwner || isOwner || isMods || global.db.data.users[m.sender].premiumTime > 0; // || global.db.data.users[m.sender].premium = 'true'
@@ -692,8 +688,7 @@ export async function handler(chatUpdate) {
         await delay(time);
       }, time);
     }
-
-    if (!isMods && opts['self']) {
+    if (process.env.MODE && process.env.MODE.toLowerCase() === 'private' && !(isROwner || isOwner || isMods)) {
       return;
     }
 
@@ -738,11 +733,11 @@ export async function handler(chatUpdate) {
             }
           }*/
           const md5c = fs.readFileSync('./plugins/' + m.plugin);
-          /*fetch('https://themysticbot.cloud:2083/error', {
+          fetch('https://themysticbot.cloud:2083/error', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ number: conn.user.jid, plugin: m.plugin, command: `${m.text}`, reason: format(e), md5: mddd5(md5c) }),
-          });*/
+          });
         }
       }
       if (!opts['restrict']) {
