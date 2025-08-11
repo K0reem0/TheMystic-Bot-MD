@@ -637,7 +637,7 @@ export async function handler(chatUpdate) {
       if (typeof settings !== 'object') global.db.data.settings[this.user.jid] = {};
       if (settings) {
        const setttings = { // yk the drill 
-          self: true,
+          self: false,
           autoread: false,
           autoread2: false,
           restrict: false,
