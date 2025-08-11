@@ -1141,9 +1141,6 @@ export async function groupsUpdate(groupsUpdate) {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.handler.participantsUpdate
 
-  if (opts['self']) {
-    return;
-  }
   for (const groupUpdate of groupsUpdate) {
     const id = groupUpdate.id;
     if (!id) continue;
@@ -1190,7 +1187,7 @@ export async function deleteUpdate(message) {
   let time = d.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true })
   try {
     const { fromMe, id, participant } = message
-    if (fromMe) return
+  //  if (fromMe) return
     let msg = mconn.conn.serializeM(mconn.conn.loadMessage(id))
     let chat = global.db.data.chats[msg?.chat] || {}
     if (!chat?.antidelete) return
