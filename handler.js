@@ -662,6 +662,12 @@ export async function handler(chatUpdate) {
     const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
     const tradutor = _translate.handler.handler
 
+    if (opts['nyimak']) {
+      return;
+    }
+    if (!m.fromMe && opts['self']) {
+      return;
+    }
     if (opts['pconly'] && m.chat.endsWith('g.us')) {
       return;
     }
@@ -674,7 +680,7 @@ export async function handler(chatUpdate) {
     if (typeof m.text !== 'string') {
       m.text = '';
     }
-    const isROwner = [conn.decodeJid(global.conn.user.jid),...global.owner.map(([number]) => number),].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
+    const isROwner = [...global.owner.map(([number]) => number)].map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
     const isOwner = isROwner || m.fromMe;
     const isMods = isOwner || global.mods.map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
     const isPrems = isROwner || isOwner || isMods || global.db.data.users[m.sender].premiumTime > 0; // || global.db.data.users[m.sender].premium = 'true'
@@ -688,9 +694,11 @@ export async function handler(chatUpdate) {
         await delay(time);
       }, time);
     }
-    if (process.env.MODE && process.env.MODE.toLowerCase() === 'private' && !(isROwner || isOwner || isMods)) {
+
+    if (m.isBaileys || isBaileysFail && m?.sender === mconn?.conn?.user?.jid) {
       return;
     }
+
     m.exp += Math.ceil(Math.random() * 10);
 
     let usedPrefix;
@@ -699,7 +707,6 @@ export async function handler(chatUpdate) {
     //const groupMetadata = (m.isGroup ? ((conn.chats[m.chat] || {}).metadata || await this.groupMetadata(m.chat).catch((_) => null)) : {}) || {};
     const participants = ((m.isGroup ? groupMetadata.participants : []) || []).map(participant => ({ id: participant.jid, jid: participant.jid, lid: participant.lid, admin: participant.admin }));
     //const participants = (m.isGroup ? groupMetadata.participants : []) || [];
-    const isSelfMessage = m?.sender === mconn?.conn?.user?.jid;
     const user = (m.isGroup ? participants.find((u) => conn.decodeJid(u.jid) === m.sender) : {}) || {}; // User Data
     const bot = (m.isGroup ? participants.find((u) => conn.decodeJid(u.jid) == this.user.jid) : {}) || {}; // Your Data
     const isRAdmin = user?.admin == 'superadmin' || false;
@@ -733,11 +740,11 @@ export async function handler(chatUpdate) {
             }
           }*/
           const md5c = fs.readFileSync('./plugins/' + m.plugin);
-          fetch('https://themysticbot.cloud:2083/error', {
+          /*fetch('https://themysticbot.cloud:2083/error', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ number: conn.user.jid, plugin: m.plugin, command: `${m.text}`, reason: format(e), md5: mddd5(md5c) }),
-          });
+          });*/
         }
       }
       if (!opts['restrict']) {
@@ -807,8 +814,8 @@ export async function handler(chatUpdate) {
         if (!isAccept) {
           continue;
         }
-        
-        if (m.id.startsWith('EVO') || m.id.startsWith('Lyru-') || (m.id.startsWith('BAE5') && m.id.length === 16) || m.id.startsWith('B24E') || (m.id.startsWith('8SCO') && m.id.length === 20) || m.id.startsWith('FizzxyTheGreat-')) return
+
+       if (m.id.startsWith('EVO') || m.id.startsWith('Lyru-') || (m.id.startsWith('BAE5') && m.id.length === 16) || m.id.startsWith('B24E') || (m.id.startsWith('8SCO') && m.id.length === 20) || m.id.startsWith('FizzxyTheGreat-')) return
 
         m.plugin = name;
         if (m.chat in global.db.data.chats || m.sender in global.db.data.users) {
@@ -1080,7 +1087,7 @@ export async function participantsUpdate({ id, participants, action }) {
   const tradutor = _translate.handler.participantsUpdate
 
   const m = mconn
- // if (opts['self']) return;
+  if (opts['self']) return;
   if (global.db.data == null) await loadDatabase();
   const chat = global.db.data.chats[id] || {};
   const botTt = global.db.data.settings[mconn?.conn?.user?.jid] || {};
@@ -1143,6 +1150,9 @@ export async function groupsUpdate(groupsUpdate) {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.handler.participantsUpdate
 
+  if (opts['self']) {
+    return;
+  }
   for (const groupUpdate of groupsUpdate) {
     const id = groupUpdate.id;
     if (!id) continue;
@@ -1189,7 +1199,7 @@ export async function deleteUpdate(message) {
   let time = d.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true })
   try {
     const { fromMe, id, participant } = message
-  //  if (fromMe) return
+    if (fromMe) return
     let msg = mconn.conn.serializeM(mconn.conn.loadMessage(id))
     let chat = global.db.data.chats[msg?.chat] || {}
     if (!chat?.antidelete) return
