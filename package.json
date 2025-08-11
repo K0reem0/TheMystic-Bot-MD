@@ -40,6 +40,7 @@
     "aptoide-scraper": "github:DIEGO-OFC/dv-aptoide-scraper",
     "awesome-phonenumber": "^2.68.0",
     "axios": "*",
+    "archiver": "^5.3.2",
     "baileys": "github:EdderBot02/bail",
     "body-parser": "^1.20.2",
     "browser-id3-writer": "*",
