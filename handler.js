@@ -665,9 +665,6 @@ export async function handler(chatUpdate) {
     if (opts['nyimak']) {
       return;
     }
-    if (!m.fromMe && opts['self']) {
-      return;
-    }
     if (opts['pconly'] && m.chat.endsWith('g.us')) {
       return;
     }
@@ -681,7 +678,7 @@ export async function handler(chatUpdate) {
       m.text = '';
     }
     const isROwner = [...global.owner.map(([number]) => number)].map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
-    const isOwner = isROwner || m.fromMe;
+    const isOwner = m.fromMe || isROwner;
     const isMods = isOwner || global.mods.map((v) => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender);
     const isPrems = isROwner || isOwner || isMods || global.db.data.users[m.sender].premiumTime > 0; // || global.db.data.users[m.sender].premium = 'true'
 
@@ -695,8 +692,11 @@ export async function handler(chatUpdate) {
       }, time);
     }
 
-    if (m.isBaileys || isBaileysFail && m?.sender === mconn?.conn?.user?.jid) {
+    if (!isMods && opts['self']) {
       return;
+    }
+    if (m.isBaileys && !isBaileysFail) {
+    return;
     }
 
     m.exp += Math.ceil(Math.random() * 10);
