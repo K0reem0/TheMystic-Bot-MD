@@ -1078,7 +1078,7 @@ export async function participantsUpdate({ id, participants, action }) {
   const tradutor = _translate.handler.participantsUpdate
 
   const m = mconn
-  if (opts['self']) return;
+ // if (opts['self']) return;
   if (global.db.data == null) await loadDatabase();
   const chat = global.db.data.chats[id] || {};
   const botTt = global.db.data.settings[mconn?.conn?.user?.jid] || {};
