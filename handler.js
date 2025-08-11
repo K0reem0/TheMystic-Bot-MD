@@ -691,7 +691,7 @@ export async function handler(chatUpdate) {
     if (process.env.MODE && process.env.MODE.toLowerCase() === 'private' && !(isROwner || isOwner || isMods)) {
       return;
     }
-    if (m.isBaileys) return
+    if (m.isBaileysFail) return
     m.exp += Math.ceil(Math.random() * 10);
 
     let usedPrefix;
