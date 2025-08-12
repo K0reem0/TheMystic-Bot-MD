@@ -339,6 +339,7 @@ export async function handler(chatUpdate) {
           makananserigala: 0,
           mana: 20,
           mangga: 0,
+          messages: 0,
           misi: '',
           money: 15,
           monyet: 0,
@@ -718,8 +719,12 @@ if (queque.indexOf(previousID) === -1) clearInterval(this)
 await delay(time)
 }, time)
 }
-
+    
+    if (process.env.MODE && process.env.MODE.toLowerCase() === 'private' && !(isROwner || isOwner || isMods))
+          return;
+    
     m.exp += Math.ceil(Math.random() * 10)
+    
 let usedPrefix
 let _user = global.db.data && global.db.data.users && global.db.data.users[m.sender]
 
@@ -1045,12 +1050,15 @@ ${tradutor.texto1[1]} ${messageNumber}/3
         this.msgqueque.splice(quequeIndex, 1);
       }
     }
-    let user; const stats = global.db.data.stats;
-    if (m) {
-      if (m.sender && (user = global.db.data.users[m.sender])) {
-        user.exp += m.exp;
-        user.limit -= m.limit * 1;
-      }
+    let user; 
+const stats = global.db.data.stats;
+
+if (m) {
+  if (m.sender && (user = global.db.data.users[m.sender])) {
+    user.exp += m.exp;
+    user.limit -= m.limit * 1;
+    user.messages = (user.messages || 0) + 1; // زيادة عداد الرسائل
+  }
 
       let stat;
       if (m.plugin) {
