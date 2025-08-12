@@ -16,13 +16,13 @@ global.isBaileysFail = false;
 global.defaultLenguaje = 'es';
 
 global.owner = [
-  ['966560801636', '👑 AURTHER 👑', true],
+  ['966546911270', '👑 هايسو 👑', true],
   ['967778411994'],
-  ['967779416950'],
+  ['966560801636'],
 ];
 
 global.suittag = ['966560801636'];
-global.prems = ['966560801636','967778411994'];
+global.prems = ['966560801636','966546911270'];
 
 // Base Rest Api
 global.BASE_API_DELIRIUS = "https://delirius-apiofc.vercel.app";
