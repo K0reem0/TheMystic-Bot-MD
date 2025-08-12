@@ -1,50 +1,101 @@
 import { canLevelUp, xpRange } from '../src/libraries/levelling.js';
-import { levelup } from '../src/libraries/canvas.js';
+import Canvacord from 'canvacord';
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 
+const roles = {
+    'مواطن 👦🏻': 0,
+    'شونين⚔️': 3,
+    'ساموراي 🗡': 4,
+    'شينوبي 🗡': 6,
+    'تارتاروس 👹': 8,
+    'نينجا⚔️': 12,
+    'ملك التنانين 🐉': 13,
+    'يونكو 🧛🏻': 14,
+    'شينيغامي 💀': 16,
+    'ملك قراصنة👒': 20,
+    'ملك👑🤴🏻': 24,
+    'الأسطورة الخالدة': 28,
+    'هاشيرا🔥🗡️': 32,
+    'الفارس الأسود 🖤': 36,
+    'حاكم الدمار👺': 48,
+    'شيطان🥀⚰️': 52,
+    'القوت 🐐': 56,
+    'العم': 60,
+    'العم آرثر': 100,
+}
 
-const handler = async (m, { conn }) => {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.rpg_levelup
+async function downloadImage(url, filename) {
+    const filePath = path.join('./tmp', filename);
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    fs.mkdirSync('./tmp', { recursive: true });
+    fs.writeFileSync(filePath, response.data);
+    return filePath;
+}
 
-  const name = conn.getName(m.sender);
-  const usertag = '@' + m.sender.split('@s.whatsapp.net')[0];
-  const user = global.db.data.users[m.sender];
-  if (!canLevelUp(user.level, user.exp, global.multiplier)) {
-    const { min, xp, max } = xpRange(user.level, global.multiplier);
-    const message = `
-${tradutor.texto1[0]}
-${tradutor.texto1[1]} ${usertag}!*
+const defaultAvatarUrl = 'https://files.catbox.moe/yjj0x6.jpg';
+const backgroundUrl = 'https://files.catbox.moe/pdcon2.jpg';
 
-${tradutor.texto1[2]} ${user.level}
-${tradutor.texto1[3]} ${user.role}
-${tradutor.texto1[4]} ${user.exp - min}/${xp}
+export async function before(m, { conn }) {
+    let user = global.db.data.users[m.sender];
+    let name = conn.getName(m.sender);
 
-${tradutor.texto1[5]} ${max - user.exp} ${tradutor.texto1[6]}`.trim();
-    return conn.sendMessage(m.chat, {text: message, mentions: [m.sender]}, {quoted: m});
-  }
-  const before = user.level * 1;
-  while (canLevelUp(user.level, user.exp, global.multiplier)) user.level++;
-  if (before !== user.level) {
-    const levelUpMessage = `${tradutor.texto2[0]} ${name}! ${tradutor.texto2[1]} ${user.level}`;
-    const levelUpDetails = `
-${tradutor.texto3[0]}
+    let beforeLevel = user.level * 1;
 
-${tradutor.texto3[1]}* ${before}
-${tradutor.texto3[2]} ${user.level}
-${tradutor.texto3[3]} ${user.role}
-
-${tradutor.texto3[4]}`.trim();
-    try {
-      const levelUpImage = await levelup(levelUpMessage, user.level);
-      conn.sendFile(m.chat, levelUpImage, 'levelup.jpg', levelUpDetails, m);
-    } catch (e) {
-      conn.sendMessage(m.chat, {text: levelUpDetails, mentions: [m.sender]}, {quoted: m});
+    // Level up loop
+    while (canLevelUp(user.level, user.exp, global.multiplier)) {
+        user.level++;
     }
-  }
-};
-handler.help = ['levelup'];
-handler.tags = ['xp'];
-handler.command = ['nivel', 'lvl', 'levelup', 'level'];
-export default handler;
+
+    // تحديث الدور بعد الترقية
+    user.role = (Object.entries(roles)
+        .sort((a, b) => b[1] - a[1])
+        .find(([, minLevel]) => user.level >= minLevel) || Object.entries(roles)[0])[0];
+
+    if (beforeLevel !== user.level) {
+        let { min, xp } = xpRange(user.level, global.multiplier);
+        let crxp = user.exp - min;
+        let requiredXpToLevelUp = xp;
+
+        // تحميل الصور
+        let pp;
+        try {
+            pp = await conn.profilePictureUrl(m.sender, 'image');
+        } catch {
+            pp = defaultAvatarUrl;
+        }
+        pp = await downloadImage(pp, 'avatar.png');
+        let customBackground = await downloadImage(backgroundUrl, 'rankbg.jpg');
+
+        const card = await new Canvacord.Rank()
+            .setAvatar(pp)
+            .setLevel(user.level)
+            .setCurrentXP(crxp)
+            .setRequiredXP(requiredXpToLevelUp)
+            .setProgressBar('#f6a623', 'COLOR')
+            .setDiscriminator(m.sender.substring(3, 7))
+            .setCustomStatusColor('#f6a623')
+            .setLevelColor('#FFFFFF', '#FFFFFF')
+            .setOverlay('#000000')
+            .setUsername(name)
+            .setBackground('IMAGE', customBackground)
+            .setRank(level, 'LEVEL', false)
+            .renderEmojis(true)
+            .build();
+
+        let message = `*❃ ──────⊰ ❀ ⊱────── ❃*\n
+*🎊 ازداد مستواك 🎉*\n
+*المستوى السابق :* *${beforeLevel}*\n
+*المستوى الحالي :* *${user.level}*\n
+*التصنيف :* *${user.role}*\n
+*❃ ──────⊰ ❀ ⊱────── ❃*`;
+
+        try {
+            await conn.sendFile(m.chat, card, 'levelup.jpg', message, m);
+        } catch (error) {
+            console.error(error);
+            m.reply(message);
+        }
+    }
+}
