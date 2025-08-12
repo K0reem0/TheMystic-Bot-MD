@@ -1,63 +1,89 @@
-import {createHash} from 'crypto';
-import PhoneNumber from 'awesome-phonenumber';
-import fetch from 'node-fetch';
+import { createHash } from 'crypto';
+import { canLevelUp, xpRange } from '../src/libraries/levelling.js';
+import Canvacord from 'canvacord';
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 
-const handler = async (m, {conn, usedPrefix, participants, isPrems}) => {
- const datas = global
- const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
- const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
- const tradutor = _translate.plugins.rpg_perfil
- const who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender;
- if (!(who in global.db.data.users)) throw tradutor.texto1;
- try {
- const pp = await conn.profilePictureUrl(who, 'image').catch(_ => 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png?q=60');
- const {name, limit, lastclaim, registered, regTime, age, premiumTime} = global.db.data.users[who];
- const username = conn.getName(who);
- const prem = global.prems.includes(who.split `@` [0]);
- const sn = createHash('md5').update(who).digest('hex');
- const str = `—◉ ${tradutor.texto2[0]} ${username} ${registered ? '(' + name + ') ': ''}
-—◉ ${tradutor.texto2[1]} ${PhoneNumber('+' + who.replace('@s.whatsapp.net', '')).getNumber('international')}
-—◉ ${tradutor.texto2[2]} wa.me/${who.split`@`[0]}${registered ? tradutor.texto2[7] + age + tradutor.texto2[8] : ''}
-—◉ ${tradutor.texto2[3]} ${limit} ${tradutor.texto2[9]}
-—◉ ${tradutor.texto2[4]} ${registered ? tradutor.texto2[10] : tradutor.texto2[11]}
-—◉ ${tradutor.texto2[5]} ${premiumTime > 0 ? '𝚂𝙸' : (isPrems ? tradutor.texto2[10] : tradutor.texto2[11]) || ''}
-—◉ ${tradutor.texto2[6]}  
-${sn}`;
-    conn.sendMessage(m.chat, {image: {url: pp}, caption: str}, {quoted: m});
+async function downloadImage(url, filename) {
+  const filePath = path.join('./tmp', filename);
+  const response = await axios.get(url, { responseType: 'arraybuffer' });
+  fs.mkdirSync('./tmp', { recursive: true });
+  fs.writeFileSync(filePath, response.data);
+  return filePath;
+}
+
+let handler = async (m, { conn }) => {
+  let who = m.quoted ? m.quoted.sender : m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender;
+
+  if (!(who in global.db.data.users)) throw '✳️ اهذا المستخدم غير موجود ف قاعدة بياناتي';
+
+  // روابط الصور
+  const defaultAvatarUrl = 'https://files.catbox.moe/yjj0x6.jpg';
+  const backgroundUrl = 'https://files.catbox.moe/pdcon2.jpg';
+
+  // تحميل الصور
+  let pp;
+  try {
+    pp = await conn.profilePictureUrl(who, 'image');
+  } catch {
+    pp = defaultAvatarUrl;
+  }
+  pp = await downloadImage(pp, 'avatar.png');
+  let customBackground = await downloadImage(backgroundUrl, 'rankbg.jpg');
+
+  let user = global.db.data.users[who];
+  let { name, exp, credit, registered, level, role, warn } = user;
+  let { min, xp, max } = xpRange(user.level, global.multiplier);
+  let username = conn.getName(who);
+  let prem = global.prems.includes(who.split('@')[0]);
+
+  let crxp = exp - min;
+  let requiredXpToLevelUp = xp;
+
+  const card = await new Canvacord.Rank()
+    .setAvatar(pp)
+    .setLevel(level)
+    .setCurrentXP(crxp)
+    .setRequiredXP(requiredXpToLevelUp)
+    .setProgressBar('#f6a623', 'COLOR')
+    .setDiscriminator(who.substring(3, 7))
+    .setCustomStatusColor('#f6a623')
+    .setLevelColor('#FFFFFF', '#FFFFFF')
+    .setOverlay('#000000')
+    .setUsername(username)
+    .setBackground('IMAGE', customBackground)
+    .setRank(level, 'LEVEL', false)
+    .renderEmojis(true)
+    .build();
+
+  const str = `*❃ ──────⊰ ❀ ⊱────── ❃*
+
+*🪪 الأسم :* ${name}
+
+*⚠️ الأنذارات:* ${warn}
+
+*💰 الرصيد :* ${credit} *بيلي*
+
+*⬆️ الخبره :* ${crxp} / ${requiredXpToLevelUp}
+
+*🏆 التصنيف :* ${role}
+
+*📇 الحساب :* ${registered ? 'مسجل' : 'غير مسجل'}
+
+*⭐️ العضوية :*  ${prem ? 'مميز' : 'عضو'}
+
+*❃ ──────⊰ ❀ ⊱────── ❃*`;
+
+  try {
+    conn.sendFile(m.chat, card, 'rank.jpg', str, m, false, { mentions: [who] });
   } catch (error) {
-  console.log(error);
- }
+    console.error(error);
+  }
 };
 
-handler.help = ['profile'];
-handler.tags = ['xp'];
-handler.command = /^perfil|profile?$/i;
+handler.help = ['prof'];
+handler.tags = ['economy'];
+handler.command = ['رانك', 'بروفايل'];
 
 export default handler;
-
-function formatNumber(num) {
-  let string = {
-    '0': '𝟶',
-    '1': '𝟷',
-    '2': '𝟸',
-    '3': '𝟹',
-    '4': '𝟺',
-    '5': '𝟻',
-    '6': '𝟼',
-    '7': '𝟽',
-    '8': '𝟾',
-    '9': '𝟿',
-    ',': ',',
-  };
-
-  let numString = num.toLocaleString().replace(/,/g, '#');
-  let result = '';
-  for (let i = 0; i < numeroString.length; i++) {
-    if (numString[i] === '#') {
-      result += ',';
-    } else {
-      result += string[numString[i]];
-    }
-  }
-  return result;
-}
