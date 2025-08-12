@@ -17,10 +17,9 @@ let handler = async (m, { conn, command }) => {
         return;
     }
 
-    // Read and parse the local eyeanime.json file
-    let rawData = fs.readFileSync('./src/game/eyeanime.json', 'utf-8');
-    let src = JSON.parse(rawData);
-    let json = src[Math.floor(Math.random() * src.length)];
+     // Fetch a random anime character
+        let src = await (await fetch('https://raw.githubusercontent.com/Aurtherle/Games/refs/heads/main/.github/workflows/eyeanime.json')).json();
+        let json = src[Math.floor(Math.random() * src.length)];
 
     // Send the game message
     let caption = `*❃ ──────⊰ ❀ ⊱────── ❃*\n*عين من ؟؟*\n\n*الوقت :* ${(timeout / 1000).toFixed(2)} ثانية\n*الجائزة :* ${poin} خبرة\n*❃ ──────⊰ ❀ ⊱────── ❃*`;
