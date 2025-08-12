@@ -44,6 +44,7 @@ let handler = async (m, { conn }) => {
   if (isNaN(user.exp) || user.exp === undefined) user.exp = 100;
   if (isNaN(user.level) || user.level === undefined) user.level = 0;
   if (isNaN(user.messages) || user.messages === undefined) user.messages = 0;
+  if (isNaN(user.credit) || user.credit === undefined) user.credit = 0;
 
 
   // روابط الصور
