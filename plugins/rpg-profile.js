@@ -60,7 +60,7 @@ let handler = async (m, { conn }) => {
   pp = await downloadImage(pp, 'avatar.png');
   let customBackground = await downloadImage(backgroundUrl, 'rankbg.jpg');
 
-  let { name, exp, credit, registered, level, role, warn } = user;
+  let { name, exp, credit, registered, level, role, warn, messages } = user;
   let { min, xp, max } = xpRange(level, global.multiplier);
   let username = conn.getName(who);
   let prem = global.prems.includes(who.split('@')[0]);
@@ -95,6 +95,8 @@ let handler = async (m, { conn }) => {
 *⬆️ الخبره :* ${crxp} / ${requiredXpToLevelUp}
 
 *🏆 التصنيف :* ${role}
+
+*✉ الرسائل :* ${messages}
 
 *📇 الحساب :* ${registered ? 'مسجل' : 'غير مسجل'}
 
