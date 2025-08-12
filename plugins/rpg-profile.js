@@ -14,9 +14,37 @@ async function downloadImage(url, filename) {
 }
 
 let handler = async (m, { conn }) => {
-  let who = m.quoted ? m.quoted.sender : m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender;
+  let who = m.quoted
+    ? m.quoted.sender
+    : m.mentionedJid && m.mentionedJid[0]
+    ? m.mentionedJid[0]
+    : m.fromMe
+    ? conn.user.jid
+    : m.sender;
 
-  if (!(who in global.db.data.users)) throw '✳️ اهذا المستخدم غير موجود ف قاعدة بياناتي';
+  // إذا المستخدم غير موجود في قاعدة البيانات أنشئ له سجل جديد
+  if (!global.db.data.users[who]) {
+    global.db.data.users[who] = {
+      registered: false,
+      name: null,
+      regTime: null,
+      image: null,
+      exp: 100,
+      messages: 0,
+      credit: 0,
+      level: 0,
+      role: '👦🏻 مواطن',
+      warn: 0
+    };
+  }
+
+  let user = global.db.data.users[who];
+
+  // إذا exp أو level ليست أرقام صحيحة، تعيين القيم الافتراضية
+  if (isNaN(user.exp) || user.exp === undefined) user.exp = 100;
+  if (isNaN(user.level) || user.level === undefined) user.level = 0;
+  if (isNaN(user.messages) || user.messages === undefined) user.messages = 0;
+
 
   // روابط الصور
   const defaultAvatarUrl = 'https://files.catbox.moe/yjj0x6.jpg';
@@ -32,9 +60,8 @@ let handler = async (m, { conn }) => {
   pp = await downloadImage(pp, 'avatar.png');
   let customBackground = await downloadImage(backgroundUrl, 'rankbg.jpg');
 
-  let user = global.db.data.users[who];
   let { name, exp, credit, registered, level, role, warn } = user;
-  let { min, xp, max } = xpRange(user.level, global.multiplier);
+  let { min, xp, max } = xpRange(level, global.multiplier);
   let username = conn.getName(who);
   let prem = global.prems.includes(who.split('@')[0]);
 
