@@ -1,4 +1,4 @@
-import { sticker } from '../plugins/sticker.js'
+import { sticker } from '../src/libraries/sticker.js'
 let handler = async (m, { conn, args, usedPrefix, command }) => {
   try {
     let [packname, ...authorParts] = args.join` `.split`|`
