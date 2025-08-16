@@ -1,5 +1,17 @@
 function handler(m, { text }) {
-  let teks = text ? text : m.quoted && m.quoted.text ? m.quoted.text : m.text
+  // إذا ما كتب نص أو ما فيه نص من الرسالة المقتبسة
+  if (!text && !(m.quoted && m.quoted.text)) {
+    return m.reply('⚠️ يجب كتابة نص بعد الأمر.');
+  }
+
+  // تحديد النص
+  let teks = text ? text : m.quoted && m.quoted.text ? m.quoted.text : m.text;
+
+  // إذا النص يحتوي على حروف عربية
+  if (/[ء-ي]/.test(teks)) {
+    return m.reply('⚠️ يجب أن يكون النص باللغة الإنجليزية فقط.');
+  }
+  
   m.reply(teks.replace(/[a-z]/gi, v => {
       return { 
           'a': '𝐀',
